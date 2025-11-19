@@ -3,7 +3,7 @@ Context Guided Reporting: Enhancing Precision Before, During, and After
 
 ---
 
-<img width="1857" height="1020" alt="image" src="https://github.com/user-attachments/assets/5910a423-421c-43f3-95fe-f58f13c66d79" />
+<img width="3592" height="1760" alt="image" src="https://github.com/user-attachments/assets/e5a19e7f-c06d-4a15-ba54-677833235ae1" />
 
 ### Overview
 
