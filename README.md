@@ -8,7 +8,7 @@
 
 ---
 
-<img width="1747" height="1008" alt="image" src="https://github.com/user-attachments/assets/6043723b-ca1e-4256-b2f7-4afe0f66d4d1" />
+<img width="1747" height="1008" alt="image" src="https://github.com/user-attachments/assets/0b115039-49da-474c-9986-ddd680243e37" />
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
