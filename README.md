@@ -8,7 +8,7 @@
 
 ---
 
-<img width="3592" height="1760" alt="RADFLOW Interface" src="https://github.com/user-attachments/assets/e5a19e7f-c06d-4a15-ba54-677833235ae1" />
+<img width="1747" height="1008" alt="image" src="https://github.com/user-attachments/assets/6043723b-ca1e-4256-b2f7-4afe0f66d4d1" />
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
