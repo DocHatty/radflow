@@ -2,7 +2,7 @@
 
 # RADFLOW
 
-*Context-Aware Intelligence | AI Augmented + Streamlined Reporting*
+*Context-Aware Intelligence | AI Augmented + Streamlined Reporting | High Yield Checklist Manifesto Workflow*
 
 ---
 
