@@ -2,9 +2,7 @@
 
 # RADFLOW
 
-**The Future of Radiological Excellence**
-
-*Context-Aware Intelligence | Before, During, and After Every Decision*
+*Context-Aware Intelligence | AI Augmented + Streamlined Reporting*
 
 ---
 
