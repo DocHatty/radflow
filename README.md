@@ -160,6 +160,6 @@ If RADFLOW enhances your practice, consider:
 
 Made with precision and purpose | Powered by Google Gemini 3
 
-[Report Bug](https://github.com/yourusername/radflow/issues) · [Request Feature](https://github.com/yourusername/radflow/issues) · [Documentation](https://github.com/yourusername/radflow/wiki)
+[Report Bug](mailto:DoctorHatkoff14@gmail.com) · [Request Feature](mailto:DoctorHatkoff14@gmail.com)
 
 </div>
