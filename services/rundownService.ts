@@ -76,23 +76,41 @@ export const initializeRundownData = (): RundownData => {
  * Generate all rundown sections in parallel
  * @param clinicalContext The clinical brief or study information
  * @param onSectionUpdate Callback when a section completes
+ * @param signal Optional AbortSignal for cancellation
  * @returns Promise that resolves when all sections are complete
  */
 export const generateRundownParallel = async (
   clinicalContext: string,
   onSectionUpdate: (key: keyof RundownData, content: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> => {
   // Create all API calls simultaneously
   const promises = SECTION_CONFIG.map(async (section) => {
     try {
+      // Check if already aborted before starting
+      if (signal?.aborted) {
+        throw new DOMException("Request aborted", "AbortError");
+      }
+
       const result = await runAiTask<string>(section.task, {
         prompt: clinicalContext,
+        signal,
       });
-      onSectionUpdate(section.key, result);
+
+      // Only update if not aborted
+      if (!signal?.aborted) {
+        onSectionUpdate(section.key, result);
+      }
     } catch (error) {
+      // Don't report abort errors as failures
+      if (error instanceof Error && error.name === "AbortError") {
+        throw error;
+      }
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      onSectionUpdate(section.key, `Error: ${errorMessage}`);
+      if (!signal?.aborted) {
+        onSectionUpdate(section.key, `Error: ${errorMessage}`);
+      }
       throw error;
     }
   });

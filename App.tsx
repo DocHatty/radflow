@@ -12,7 +12,7 @@ import ErrorDisplay from "./components/ErrorDisplay";
 import SettingsPanel from "./components/SettingsPanel";
 import DiagnosticsPanel from "./components/DiagnosticsPanel";
 import ApiKeySetupModal from "./components/ApiKeySetupModal";
-import { useThemeManager } from "./hooks/useThemeManager";
+
 import {
   createWorkflowSlice,
   WorkflowSlice,
@@ -29,9 +29,8 @@ import { generateImpressionistBackground } from "./services/geminiService";
 // API key is preserved in "radflow-settings" storage
 try {
   localStorage.removeItem("radflow-workflow-storage");
-  console.log("✨ Session start: Workflow cache cleared for fresh session");
-} catch (e) {
-  console.error("Error clearing workflow cache on session start:", e);
+} catch {
+  // Silently ignore localStorage errors during cache cleanup
 }
 
 // --- ZUSTAND STORE DEFINITION ---
@@ -303,7 +302,6 @@ function App() {
     needsApiKeySetup: state.needsApiKeySetup,
     completeApiKeySetup: state.completeApiKeySetup,
   }));
-  const { changeTheme } = useThemeManager();
 
   useEffect(() => {
     init();
@@ -336,14 +334,14 @@ function App() {
     <div className="relative min-h-screen flex flex-col text-sm font-medium text-slate-200">
       <DynamicBackground />
 
-      <Header onChangeTheme={changeTheme} />
+      <Header />
 
-      <main className="flex-grow flex flex-col items-center p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto w-full z-10">
+      <main className="grow flex flex-col items-center p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto w-full z-10">
         <ErrorDisplay />
 
         <WorkflowStepper stage={workflowStage} />
 
-        <div className="w-full flex-grow flex flex-col items-center justify-center relative perspective-[1000px]">
+        <div className="w-full grow flex flex-col items-center justify-center relative perspective-[1000px]">
           <AnimatePresence mode="wait">
             {workflowStage === "input" && (
               <motion.div
@@ -394,7 +392,7 @@ function App() {
           <motion.div
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950 text-white"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 text-white"
           >
             <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <h2 className="text-xl font-header tracking-widest animate-pulse">

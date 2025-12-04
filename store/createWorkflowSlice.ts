@@ -153,10 +153,38 @@ const initialState = {
   isGeneratingRundown: false,
 };
 
+// Global AbortController for cancelling in-flight guidance requests
+let guidanceAbortController: AbortController | null = null;
+
+/**
+ * Cancels any in-flight guidance requests. Call this before starting new requests
+ * or when navigating away from a stage that has pending requests.
+ */
+const cancelGuidanceRequests = () => {
+  if (guidanceAbortController) {
+    guidanceAbortController.abort();
+    guidanceAbortController = null;
+  }
+};
+
+/**
+ * Creates a new AbortController for guidance requests.
+ * Automatically cancels any existing controller first.
+ */
+const createGuidanceAbortController = (): AbortController => {
+  cancelGuidanceRequests();
+  guidanceAbortController = new AbortController();
+  return guidanceAbortController;
+};
+
 /**
  * Creates a robust stream handler that buffers incoming text chunks and updates
  * the Zustand state using requestAnimationFrame. This prevents UI lag and state
  * corruption by batching rapid updates into a single render frame.
+ *
+ * OPTIMIZATION: Uses array accumulation instead of string concatenation to avoid
+ * O(n²) complexity. Each chunk is pushed to an array (O(1)), then joined on flush (O(n)).
+ *
  * @param set - The Zustand set function.
  * @param updateFn - A function that takes the current state and the buffered chunk
  * and returns the new state partial.
@@ -175,16 +203,18 @@ const createStreamHandler = (
     bufferedChunk: string,
   ) => Partial<WorkflowSlice>,
 ) => {
-  let buffer = "";
+  // Use array instead of string concatenation for O(1) appends
+  const chunks: string[] = [];
   let frameId: number | null = null;
 
   const onChunk = (chunk: string) => {
-    buffer += chunk;
+    chunks.push(chunk); // O(1) instead of O(n) string concatenation
     if (!frameId) {
       frameId = requestAnimationFrame(() => {
-        if (buffer.length > 0) {
+        if (chunks.length > 0) {
+          const buffer = chunks.join(""); // O(n) - done once per frame
+          chunks.length = 0; // Clear array efficiently
           set((state) => updateFn(state as WorkflowSlice, buffer));
-          buffer = "";
         }
         frameId = null;
       });
@@ -196,9 +226,10 @@ const createStreamHandler = (
       cancelAnimationFrame(frameId);
       frameId = null;
     }
-    if (buffer.length > 0) {
+    if (chunks.length > 0) {
+      const buffer = chunks.join("");
+      chunks.length = 0;
       set((state) => updateFn(state as WorkflowSlice, buffer));
-      buffer = "";
     }
   };
 
@@ -215,7 +246,6 @@ export const createWorkflowSlice: StateCreator<
   ...initialState,
 
   init: async () => {
-    console.log("🚀 App initialization started");
     logEvent("App Initialization Started");
     set({ isInitializing: true });
 
@@ -223,8 +253,6 @@ export const createWorkflowSlice: StateCreator<
 
     // Small delay to ensure state updates from _loadSettings propagate
     await new Promise((resolve) => setTimeout(resolve, 100));
-
-    console.log("⏱️ After delay, needsApiKeySetup:", get().needsApiKeySetup);
 
     try {
       // Future async initialization can go here.
@@ -238,7 +266,6 @@ export const createWorkflowSlice: StateCreator<
         context: "Initialization",
       });
     } finally {
-      console.log("✅ Setting isInitializing = false");
       set({ isInitializing: false });
       logEvent("App Initialization Finished");
     }
@@ -310,7 +337,11 @@ export const createWorkflowSlice: StateCreator<
       // Start guidance generation early while user reviews the verification screen
       const clinicalBrief = constructBriefFromParsedInput(parsedData);
 
-      logEvent("🚀 Starting PARALLEL pre-fetch of guidance...");
+      // Create new AbortController for this batch of requests (cancels any previous)
+      const abortController = createGuidanceAbortController();
+      const signal = abortController.signal;
+
+      logEvent("Starting PARALLEL pre-fetch of guidance...");
       set({
         isFetchingGuidance: true,
         guidanceContent: "",
@@ -336,56 +367,71 @@ export const createWorkflowSlice: StateCreator<
         sources: any[];
       }>("getAppropriateness", {
         prompt: clinicalBrief,
+        signal,
       })
         .then((result) => {
-          console.log("✅ Appropriateness fetched!");
-          set((state) => ({
-            guidanceContent: result.text,
-            guidanceSources: result.sources,
-          }));
+          if (!signal.aborted) {
+            set({
+              guidanceContent: result.text,
+              guidanceSources: result.sources,
+            });
+          }
         })
         .catch((error) => {
-          console.error("❌ Appropriateness fetch failed:", error);
+          // Ignore abort errors - they're expected when navigating away
+          if (error.name !== "AbortError") {
+            logEvent("Appropriateness fetch failed", { error: error.message });
+          }
         });
 
       // Fire all rundown sections in parallel
       const rundownPromise = generateRundownParallel(
         contextPrompt,
         (key, content) => {
-          set((state) => {
-            if (!state.rundownData) return state;
-            const safeContent = content || "";
-            return {
-              rundownData: {
-                ...state.rundownData,
-                [key]: {
-                  ...state.rundownData[key],
-                  content: safeContent,
-                  isLoading: false,
-                  error: safeContent.startsWith("Error:")
-                    ? safeContent
-                    : undefined,
+          if (!signal.aborted) {
+            set((state) => {
+              if (!state.rundownData) return state;
+              const safeContent = content || "";
+              return {
+                rundownData: {
+                  ...state.rundownData,
+                  [key]: {
+                    ...state.rundownData[key],
+                    content: safeContent,
+                    isLoading: false,
+                    error: safeContent.startsWith("Error:")
+                      ? safeContent
+                      : undefined,
+                  },
                 },
-              },
-            };
-          });
+              };
+            });
+          }
         },
+        signal,
       );
 
-      // Wait for both to complete
-      Promise.all([appropriatenessPromise, rundownPromise])
-        .then(() => {
-          console.log("✅ All guidance fetched in parallel!");
-          set({ isFetchingGuidance: false, isGeneratingRundown: false });
-          logEvent("✅ Parallel guidance pre-fetch complete");
-        })
-        .catch((error) => {
-          console.error("❌ Pre-fetch guidance failed:", error);
-          logEvent("Pre-fetch guidance failed (will retry on confirm)", {
-            error,
-          });
-          set({ isFetchingGuidance: false, isGeneratingRundown: false });
-        });
+      // Wait for both to complete with proper error handling
+      Promise.allSettled([appropriatenessPromise, rundownPromise]).then(
+        (results) => {
+          if (!signal.aborted) {
+            set({ isFetchingGuidance: false, isGeneratingRundown: false });
+            logEvent("Parallel guidance pre-fetch complete");
+
+            // Log any failures for debugging
+            results.forEach((result, index) => {
+              if (
+                result.status === "rejected" &&
+                result.reason?.name !== "AbortError"
+              ) {
+                logEvent(`Pre-fetch task ${index} failed`, {
+                  error: result.reason?.message,
+                });
+              }
+            });
+          }
+        },
+      );
 
       // Also pre-fetch guideline selection
       const guidelineKnowledgeBase = FOLLOW_UP_GUIDELINES.map(
@@ -394,21 +440,24 @@ export const createWorkflowSlice: StateCreator<
 
       runAiTask<{ relevantGuidelineTopics: string[] }>("selectGuidelines", {
         prompt: `**Clinical Brief:**\n${clinicalBrief}\n\n**Available Guidelines:**\n${guidelineKnowledgeBase}`,
+        signal,
       })
         .then((result) => {
-          const relevantTopics = new Set(result.relevantGuidelineTopics);
-          const activeGuidelines = FOLLOW_UP_GUIDELINES.filter((g) =>
-            relevantTopics.has(g.topic),
-          );
-          set({ activeGuidelines });
-          logEvent("Pre-fetched guidelines ready", {
-            selected: activeGuidelines.map((g) => g.topic),
-          });
+          if (!signal.aborted) {
+            const relevantTopics = new Set(result.relevantGuidelineTopics);
+            const activeGuidelines = FOLLOW_UP_GUIDELINES.filter((g) =>
+              relevantTopics.has(g.topic),
+            );
+            set({ activeGuidelines });
+            logEvent("Pre-fetched guidelines ready", {
+              selected: activeGuidelines.map((g) => g.topic),
+            });
+          }
         })
         .catch((error) => {
-          logEvent("Pre-fetch guidelines failed (will retry on confirm)", {
-            error,
-          });
+          if (error.name !== "AbortError") {
+            logEvent("Pre-fetch guidelines failed", { error: error.message });
+          }
         });
     } catch (e) {
       const err = e as Error;
@@ -529,10 +578,12 @@ export const createWorkflowSlice: StateCreator<
     const { isFetchingGuidance } = get();
 
     if (!preFetchedGuidance && !isFetchingGuidance) {
-      console.log(
-        "⚠️ No pre-fetched guidance found, fetching now (parallel)...",
-      );
       logEvent("No pre-fetched guidance found, fetching now (parallel)");
+
+      // Create new AbortController for this batch
+      const abortController = createGuidanceAbortController();
+      const signal = abortController.signal;
+
       set({
         isFetchingGuidance: true,
         rundownData: initializeRundownData(),
@@ -555,55 +606,68 @@ export const createWorkflowSlice: StateCreator<
       const appropriatenessPromise = runAiTask<{
         text: string;
         sources: any[];
-      }>("getAppropriateness", { prompt: clinicalBrief })
+      }>("getAppropriateness", { prompt: clinicalBrief, signal })
         .then((result) => {
-          set({
-            guidanceContent: result.text,
-            guidanceSources: result.sources,
-          });
+          if (!signal.aborted) {
+            set({
+              guidanceContent: result.text,
+              guidanceSources: result.sources,
+            });
+          }
         })
         .catch((error) => {
-          logEvent("Appropriateness task failed", { error });
+          if (error.name !== "AbortError") {
+            logEvent("Appropriateness task failed", { error: error.message });
+          }
         });
 
       const rundownPromise = generateRundownParallel(
         contextPrompt,
         (key, content) => {
-          set((state) => {
-            if (!state.rundownData) return state;
-            const safeContent = content || "";
-            return {
-              rundownData: {
-                ...state.rundownData,
-                [key]: {
-                  ...state.rundownData[key],
-                  content: safeContent,
-                  isLoading: false,
-                  error: safeContent.startsWith("Error:")
-                    ? safeContent
-                    : undefined,
+          if (!signal.aborted) {
+            set((state) => {
+              if (!state.rundownData) return state;
+              const safeContent = content || "";
+              return {
+                rundownData: {
+                  ...state.rundownData,
+                  [key]: {
+                    ...state.rundownData[key],
+                    content: safeContent,
+                    isLoading: false,
+                    error: safeContent.startsWith("Error:")
+                      ? safeContent
+                      : undefined,
+                  },
                 },
-              },
-            };
-          });
+              };
+            });
+          }
         },
+        signal,
       );
 
-      guidancePromise = Promise.all([appropriatenessPromise, rundownPromise])
-        .then(() => {
+      guidancePromise = Promise.allSettled([
+        appropriatenessPromise,
+        rundownPromise,
+      ]).then((results) => {
+        if (!signal.aborted) {
           set({ isFetchingGuidance: false, isGeneratingRundown: false });
-        })
-        .catch((error) => {
-          logEvent("Guidance task failed but workflow continues", { error });
-          set({ isFetchingGuidance: false, isGeneratingRundown: false });
-        });
+          // Log failures for debugging
+          results.forEach((result, index) => {
+            if (
+              result.status === "rejected" &&
+              result.reason?.name !== "AbortError"
+            ) {
+              logEvent(`Guidance task ${index} failed`, {
+                error: result.reason?.message,
+              });
+            }
+          });
+        }
+      });
     } else {
-      console.log(
-        "✅ Using pre-fetched guidance (instant load or already fetching)",
-      );
-      logEvent(
-        "✅ Using pre-fetched guidance (instant load or already fetching)",
-      );
+      logEvent("Using pre-fetched guidance (instant load or already fetching)");
     }
 
     if (!preFetchedGuidelines || preFetchedGuidelines.length === 0) {
@@ -647,8 +711,22 @@ export const createWorkflowSlice: StateCreator<
 
       // DO NOT generate differentials here - only after dictation
 
-      // Let background tasks finish without blocking UI
-      Promise.allSettled([guidancePromise, guidelineSelectionPromise]);
+      // Let background tasks finish without blocking UI, with proper error handling
+      Promise.allSettled([guidancePromise, guidelineSelectionPromise]).then(
+        (results) => {
+          results.forEach((result, index) => {
+            if (
+              result.status === "rejected" &&
+              result.reason?.name !== "AbortError"
+            ) {
+              const taskName = index === 0 ? "Guidance" : "Guideline Selection";
+              logEvent(`${taskName} background task failed`, {
+                error: result.reason?.message,
+              });
+            }
+          });
+        },
+      );
 
       setProcess("idle");
     } catch (e) {
@@ -660,13 +738,8 @@ export const createWorkflowSlice: StateCreator<
 
   generateDifferentials: async () => {
     const { editableReportContent, setProcess, setError } = get();
-    console.log(
-      "🔍 generateDifferentials called, report content:",
-      editableReportContent.substring(0, 100) + "...",
-    );
 
     if (!editableReportContent.trim()) {
-      console.log("❌ No report content, skipping differential generation");
       return;
     }
 
@@ -677,20 +750,11 @@ export const createWorkflowSlice: StateCreator<
       ? findingsMatch[1].trim()
       : editableReportContent;
 
-    console.log(
-      "📋 Extracted findings text:",
-      findingsText.substring(0, 100) + "...",
-    );
-
     if (!findingsText) {
-      console.log(
-        "❌ No findings text extracted, skipping differential generation",
-      );
       logEvent("Differential generation skipped: No findings found.");
       return;
     }
 
-    console.log("🚀 Starting differential generation...");
     setProcess("generatingDifferentials");
     try {
       const result = await runAiTask<{ diagnoses: DifferentialDiagnosis[] }>(
@@ -698,8 +762,7 @@ export const createWorkflowSlice: StateCreator<
         { prompt: findingsText },
       );
       const diagnoses = result.diagnoses || [];
-      console.log("✅ Differentials generated:", diagnoses.length, "items");
-      console.log("Differentials:", diagnoses);
+      logEvent("Differentials generated", { count: diagnoses.length });
       set({
         differentials: diagnoses,
         selectedDifferentials: diagnoses,
@@ -707,7 +770,6 @@ export const createWorkflowSlice: StateCreator<
       });
     } catch (e) {
       const err = e as Error;
-      console.error("❌ Differential generation failed:", err);
       setError({ message: err.message, context: "Generating Differentials" });
     } finally {
       setProcess("idle");
@@ -766,6 +828,8 @@ export const createWorkflowSlice: StateCreator<
 
   reviseBrief: () => {
     logEvent("Revising Brief");
+    // Cancel any in-flight guidance requests to prevent stale updates
+    cancelGuidanceRequests();
     set({ workflowStage: "verification", copilotView: "guidance" });
   },
 

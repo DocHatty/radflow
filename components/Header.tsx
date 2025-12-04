@@ -1,20 +1,10 @@
 import React from "react";
-import {
-  LogoIcon,
-  PaletteIcon,
-  SettingsIcon,
-  NewCaseIcon,
-  BugAntIcon,
-} from "./Icons";
+import { SettingsIcon, NewCaseIcon, BugAntIcon } from "./Icons";
 import SecondaryButton from "./SecondaryButton";
 import IconButton from "./IconButton";
-import { useWorkflowStore } from '../App';
+import { useWorkflowStore } from "../App";
 
-interface HeaderProps {
-  onChangeTheme: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ onChangeTheme }) => {
+const Header: React.FC = () => {
   const {
     activeProcess,
     resetWorkflow,
@@ -49,8 +39,12 @@ const Header: React.FC<HeaderProps> = ({ onChangeTheme }) => {
   const isBusy = activeProcess !== "idle";
 
   return (
-    <header className="bg-[var(--color-base)]/30 backdrop-blur-md p-3 sm:px-6 sticky top-0 z-50 flex items-center justify-between header-border transition-all duration-300 border-b border-white/5">
-      <div className="flex-1 flex justify-center">
+    <header className="bg-(--color-base)/30 backdrop-blur-md p-3 sm:px-6 sticky top-0 z-50 flex items-center header-border transition-all duration-300 border-b border-white/5">
+      {/* Empty spacer to balance the right side controls */}
+      <div className="flex-1" />
+
+      {/* Centered logo */}
+      <div className="flex justify-center">
         <div
           className="flex flex-col items-center cursor-pointer group"
           onClick={resetWorkflow}
@@ -62,7 +56,8 @@ const Header: React.FC<HeaderProps> = ({ onChangeTheme }) => {
         </div>
       </div>
 
-      <div className="flex justify-end items-center space-x-2 sm:space-x-3">
+      {/* Right side controls */}
+      <div className="flex-1 flex justify-end items-center space-x-2 sm:space-x-3">
         <div className="hidden xl:flex flex-col items-end mr-4 pr-4 border-r border-white/10">
           <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-0.5">
             Local Time
@@ -90,16 +85,6 @@ const Header: React.FC<HeaderProps> = ({ onChangeTheme }) => {
           className="sm:hidden !bg-white/5 !border-white/10"
         >
           <SettingsIcon className="h-5 w-5" />
-        </IconButton>
-
-        <IconButton
-          onClick={onChangeTheme}
-          disabled={isBusy}
-          aria-label="Change Theme"
-          title="Change Theme"
-          className="!bg-white/5 !border-white/10"
-        >
-          <PaletteIcon className="h-5 w-5" />
         </IconButton>
 
         <IconButton

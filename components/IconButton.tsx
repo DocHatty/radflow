@@ -6,8 +6,8 @@ interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> 
 }
 
 const IconButton: React.FC<IconButtonProps> = ({ children, className, ...props }) => {
-  const baseClasses = "p-2.5 rounded-full border border-[var(--color-border)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text-bright)] transition-all duration-200 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center";
-  const defaultClasses = "bg-[var(--color-interactive-bg)] text-[var(--color-text-muted)] hover:bg-[var(--color-interactive-bg-hover)]";
+  const baseClasses = "p-2.5 rounded-full border border-(--color-border) hover:border-(--color-border-hover) hover:text-(--color-text-bright) transition-all duration-200 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center";
+  const defaultClasses = "bg-(--color-interactive-bg) text-(--color-text-muted) hover:bg-(--color-interactive-bg-hover)";
 
   return (
     <button

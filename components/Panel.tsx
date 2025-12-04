@@ -13,9 +13,9 @@ const Panel: React.FC<PanelProps> = ({ children, title, actions, footer, classNa
   return (
     <div className={`glass-panel ${className}`}>
       {(title || actions) && (
-        <div className="flex justify-between items-center p-4 border-b border-[var(--color-border)] flex-shrink-0">
+        <div className="flex justify-between items-center p-4 border-b border-(--color-border) shrink-0">
           {typeof title === 'string' ? (
-            <h3 className="text-sm font-semibold text-[var(--color-text-bright)] uppercase tracking-wider">{title}</h3>
+            <h3 className="text-sm font-semibold text-(--color-text-bright) uppercase tracking-wider">{title}</h3>
           ) : (
             title
           )}
@@ -26,7 +26,7 @@ const Panel: React.FC<PanelProps> = ({ children, title, actions, footer, classNa
         {children}
       </div>
       {footer && (
-        <div className="p-4 border-t border-[var(--color-border)] flex-shrink-0 bg-[var(--color-panel-bg)]/50">
+        <div className="p-4 border-t border-(--color-border) shrink-0 bg-(--color-panel-bg)/50">
           {footer}
         </div>
       )}

@@ -62,8 +62,6 @@ export const createSettingsSlice: StateCreator<
     })),
 
   _loadSettings: () => {
-    console.log("🔧 _loadSettings called");
-
     // Check both new and old first launch keys for backwards compatibility
     const hasLaunchedBefore =
       localStorage.getItem(FIRST_LAUNCH_KEY) ||
@@ -71,9 +69,6 @@ export const createSettingsSlice: StateCreator<
 
     try {
       const storedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
-
-      console.log("📦 storedSettings:", !!storedSettings);
-      console.log("🏁 hasLaunchedBefore:", hasLaunchedBefore);
 
       if (storedSettings) {
         const parsed = JSON.parse(storedSettings);
@@ -157,25 +152,33 @@ export const createSettingsSlice: StateCreator<
 
     // First time setup - no settings saved yet
     if (!hasLaunchedBefore) {
-      console.log("🆕 First launch - setting needsApiKeySetup = true");
       set({ settings: DEFAULT_SETTINGS, needsApiKeySetup: true });
       logEvent("First launch - API key setup needed");
     } else {
-      console.log("✅ Returning user - loading defaults");
       set({ settings: DEFAULT_SETTINGS });
       logEvent("Loaded default settings");
     }
   },
 
   _saveSettings: (settingsToSave) => {
-    try {
-      localStorage.setItem(
-        SETTINGS_STORAGE_KEY,
-        JSON.stringify(settingsToSave),
-      );
-      logEvent("Settings saved to localStorage");
-    } catch (error) {
-      logError("Failed to save settings to localStorage", { error });
+    // Use requestIdleCallback to defer localStorage writes to avoid blocking UI
+    const saveOperation = () => {
+      try {
+        localStorage.setItem(
+          SETTINGS_STORAGE_KEY,
+          JSON.stringify(settingsToSave),
+        );
+        logEvent("Settings saved to localStorage");
+      } catch (error) {
+        logError("Failed to save settings to localStorage", { error });
+      }
+    };
+
+    // Use requestIdleCallback if available, otherwise use setTimeout
+    if (typeof requestIdleCallback !== "undefined") {
+      requestIdleCallback(saveOperation, { timeout: 1000 });
+    } else {
+      setTimeout(saveOperation, 0);
     }
   },
 

@@ -21,7 +21,7 @@ const InteractiveRecommendations: React.FC<{
   const isBusy = activeProcess === 'applyingChanges';
 
   if (recommendations.length === 0) {
-    return <p className="text-sm text-[var(--color-text-muted)]">No specific recommendations provided.</p>;
+    return <p className="text-sm text-(--color-text-muted)">No specific recommendations provided.</p>;
   }
   
   const handleApply = async (index: number) => {
@@ -40,12 +40,12 @@ const InteractiveRecommendations: React.FC<{
     <div className="space-y-4">
       <ul className="space-y-3">
         {recommendations.map((rec, index) => (
-          <li key={index} className="p-3 rounded-md bg-[var(--color-interactive-bg)]/50 border border-[var(--color-border)] flex items-start justify-between gap-3 animate-fade-in" style={{ animationDelay: `${index * 100}ms`}}>
-            <p className="text-sm flex-grow pt-1.5">{rec}</p>
+          <li key={index} className="p-3 rounded-md bg-(--color-interactive-bg)/50 border border-(--color-border) flex items-start justify-between gap-3 animate-fade-in" style={{ animationDelay: `${index * 100}ms`}}>
+            <p className="text-sm grow pt-1.5">{rec}</p>
             <SecondaryButton
               onClick={() => handleApply(index)}
               disabled={isBusy}
-              className="!bg-[var(--color-secondary)]/10 !text-[var(--color-secondary)] hover:!bg-[var(--color-secondary)]/20 hover:!text-white flex-shrink-0"
+              className="!bg-(--color-secondary)/10 !text-(--color-secondary) hover:!bg-(--color-secondary)/20 hover:!text-white shrink-0"
             >
               {localLoading === index && <LoadingSpinner className="mr-1.5 h-4 w-4" />}
               Apply
@@ -54,7 +54,7 @@ const InteractiveRecommendations: React.FC<{
         ))}
       </ul>
       {recommendations.length > 1 && (
-        <div className="pt-4 border-t border-[var(--color-border)] flex justify-end">
+        <div className="pt-4 border-t border-(--color-border) flex justify-end">
           <ActionButton onClick={handleApplyAll} isLoading={localLoading === 'all'} disabled={isBusy}>
             <SparklesIcon className="mr-2 h-5 w-5" />
             Apply All Recommendations
@@ -100,26 +100,26 @@ const QAChat: React.FC = () => {
     const liveQuery = query + (interimTranscript ? (query.endsWith(' ') || !query ? '' : ' ') + interimTranscript : '');
 
     return (
-        <div className="pt-4 mt-4 border-t border-[var(--color-border)] flex flex-col h-full">
-            <div className="flex-grow overflow-y-auto space-y-4 pr-2">
+        <div className="pt-4 mt-4 border-t border-(--color-border) flex flex-col h-full">
+            <div className="grow overflow-y-auto space-y-4 pr-2">
                 {qaHistory.map((item, index) => {
                   const isUser = item.role === 'user';
                   const isStreaming = isQuerying && index === qaHistory.length - 1;
                   return (
                     <div key={index} className={`flex items-start gap-3 ${isUser ? 'justify-end' : ''}`}>
                       {!isUser && (
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-secondary)]/20 text-[var(--color-secondary)]">
+                        <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-(--color-secondary)/20 text-(--color-secondary)">
                           <AiIcon className="w-5 h-5" />
                         </div>
                       )}
-                      <div className={`p-3 rounded-lg text-sm max-w-md ${isUser ? 'bg-[var(--color-primary)]/10 text-[var(--color-text-default)]' : 'bg-[var(--color-interactive-bg)]'}`}>
+                      <div className={`p-3 rounded-lg text-sm max-w-md ${isUser ? 'bg-(--color-primary)/10 text-(--color-text-default)' : 'bg-(--color-interactive-bg)'}`}>
                           <div 
                             className="prose prose-sm prose-invert"
                             dangerouslySetInnerHTML={{ __html: parseMarkdownToHTML(item.content) || (isStreaming ? '<span class="animate-pulse">...</span>' : '')}}
                           />
                       </div>
                        {isUser && (
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-interactive-bg-hover)] text-[var(--color-text-bright)]">
+                        <div className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-(--color-interactive-bg-hover) text-(--color-text-bright)">
                           <UserIcon className="w-5 h-5" />
                         </div>
                       )}
@@ -128,7 +128,7 @@ const QAChat: React.FC = () => {
                 })}
                 <div ref={chatEndRef} />
             </div>
-            <div className="relative flex-shrink-0 pt-2 flex items-center space-x-2 mt-2">
+            <div className="relative shrink-0 pt-2 flex items-center space-x-2 mt-2">
                 <textarea
                     value={isListening ? liveQuery : query}
                     onChange={(e) => {
@@ -142,7 +142,7 @@ const QAChat: React.FC = () => {
                         }
                     }}
                     placeholder="Ask a follow-up question..."
-                    className="glass-input w-full p-2.5 pr-20 rounded-lg focus:outline-none resize-none text-sm transition-shadow duration-200 text-[var(--color-text-default)] disabled:opacity-50"
+                    className="glass-input w-full p-2.5 pr-20 rounded-lg focus:outline-none resize-none text-sm transition-shadow duration-200 text-(--color-text-default) disabled:opacity-50"
                     rows={1}
                     disabled={isQuerying}
                 />
@@ -150,7 +150,7 @@ const QAChat: React.FC = () => {
                     <IconButton onClick={toggleListening} disabled={isQuerying} aria-label={isListening ? "Stop dictation" : "Start dictation"} className={`border-none ${isListening ? 'text-red-400' : ''}`}>
                         <MicIcon isListening={isListening} />
                     </IconButton>
-                    <IconButton onClick={handleSubmit} disabled={isQuerying || !query.trim()} aria-label="Send Query" className="bg-[var(--color-primary)]/20 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/30 border-none">
+                    <IconButton onClick={handleSubmit} disabled={isQuerying || !query.trim()} aria-label="Send Query" className="bg-(--color-primary)/20 text-(--color-primary) hover:bg-(--color-primary)/30 border-none">
                         <SendIcon className="h-5 w-5"/>
                     </IconButton>
                 </div>
@@ -175,8 +175,8 @@ export const FinalReviewPanel: React.FC = () => {
     if (isLoading) {
       return (
         <div className="flex flex-col justify-center items-center h-full text-center">
-          <LoadingSpinner className="w-10 h-10 text-[var(--color-primary)]" />
-          <p className="mt-3 text-sm text-[var(--color-text-muted)]">Performing final quality assurance check...</p>
+          <LoadingSpinner className="w-10 h-10 text-(--color-primary)" />
+          <p className="mt-3 text-sm text-(--color-text-muted)">Performing final quality assurance check...</p>
         </div>
       );
     }
@@ -200,13 +200,13 @@ export const FinalReviewPanel: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-        <div className={showReviewContent ? 'flex-shrink-0' : 'flex-grow flex flex-col'}>
-            <div className="flex-grow">
+        <div className={showReviewContent ? 'shrink-0' : 'grow flex flex-col'}>
+            <div className="grow">
                  {renderPanelContent()}
             </div>
              {activeGuidelines.length > 0 && <div className="pt-4 mt-auto"><GuidelineReference guidelines={activeGuidelines} /></div>}
         </div>
-        {showReviewContent && <div className="flex-grow min-h-0"><QAChat /></div>}
+        {showReviewContent && <div className="grow min-h-0"><QAChat /></div>}
       </div>
   );
 };

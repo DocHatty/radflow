@@ -88,16 +88,16 @@ const PromptsTab: React.FC<{
         <div className="space-y-6 pt-4">
           {group.keys.map((key) => (
             <div key={key}>
-              <label className="block text-sm font-bold text-[var(--color-text-bright)] mb-1 uppercase tracking-wider">
+              <label className="block text-sm font-bold text-(--color-text-bright) mb-1 uppercase tracking-wider">
                 {key.replace(/_/g, " ").replace("SYSTEM INSTRUCTION", "")}
               </label>
-              <p className="text-xs text-[var(--color-text-muted)] mb-2">
+              <p className="text-xs text-(--color-text-muted) mb-2">
                 {promptDescriptions[key]}
               </p>
               <textarea
                 value={settings.prompts[key]}
                 onChange={(e) => onChange(key, e.target.value)}
-                className="w-full h-48 p-3 text-sm rounded-md bg-[var(--color-input-bg)] border border-[var(--color-border)] focus:border-[var(--color-primary)] text-[var(--color-text-default)] font-mono resize-y focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+                className="w-full h-48 p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) font-mono resize-y focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
               />
             </div>
           ))}
@@ -120,13 +120,13 @@ const PasswordInput: React.FC<{
         type={isVisible ? "text" : "password"}
         value={value}
         onChange={onChange}
-        className="w-full p-3 text-sm rounded-md bg-[var(--color-input-bg)] border border-[var(--color-border)] focus:border-[var(--color-primary)] text-[var(--color-text-default)] font-mono focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] pr-10"
+        className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) font-mono focus:outline-none focus:ring-1 focus:ring-(--color-primary) pr-10"
         placeholder="Enter API Key"
       />
       <button
         type="button"
         onClick={() => setIsVisible(!isVisible)}
-        className="absolute inset-y-0 right-0 px-3 flex items-center text-[var(--color-text-muted)] hover:text-white"
+        className="absolute inset-y-0 right-0 px-3 flex items-center text-(--color-text-muted) hover:text-white"
       >
         {isVisible ? (
           <EyeSlashIcon className="h-5 w-5" />
@@ -152,24 +152,24 @@ const ApiKeyManager: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="p-3 bg-[var(--color-warning-bg)]/80 border border-[var(--color-warning-border)] text-xs text-[var(--color-warning-text)] rounded-md flex">
-        <InfoIcon className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0" />
+      <div className="p-3 bg-(--color-warning-bg)/80 border border-(--color-warning-border) text-xs text-(--color-warning-text) rounded-md flex">
+        <InfoIcon className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
         <span>
           Your API key is stored securely in your browser's local storage and
           never sent to any server except Google's API.
         </span>
       </div>
 
-      <div className="p-4 border border-[var(--color-border)] rounded-lg bg-[var(--color-panel-bg)]/50 space-y-4">
+      <div className="p-4 border border-(--color-border) rounded-lg bg-(--color-panel-bg)/50 space-y-4">
         <div>
           <h4 className="font-semibold text-white mb-1">Google Gemini API</h4>
-          <p className="text-xs text-[var(--color-text-muted)]">
+          <p className="text-xs text-(--color-text-muted)">
             Manage your Google Gemini API key
           </p>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-[var(--color-text-muted)] mb-2">
+          <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
             API Key
           </label>
           <PasswordInput
@@ -373,17 +373,17 @@ const ModelsTab: React.FC<{
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-bold text-[var(--color-text-bright)] mb-1 uppercase tracking-wider">
+        <label className="block text-sm font-bold text-(--color-text-bright) mb-1 uppercase tracking-wider">
           Active API Provider
         </label>
-        <p className="text-xs text-[var(--color-text-muted)] mb-2">
+        <p className="text-xs text-(--color-text-muted) mb-2">
           Select which configured provider the application should use for AI
           tasks.
         </p>
         <select
           value={settings.activeProviderId}
           onChange={(e) => onActiveProviderChange(e.target.value)}
-          className="w-full p-3 text-sm rounded-md bg-[var(--color-input-bg)] border border-[var(--color-border)] focus:border-[var(--color-primary)] text-[var(--color-text-default)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+          className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
         >
           {settings.providers.map((p) => (
             <option key={p.id} value={p.id}>
@@ -394,8 +394,8 @@ const ModelsTab: React.FC<{
       </div>
 
       {activeProvider && (
-        <div className="p-4 border border-[var(--color-border)] rounded-lg space-y-4">
-          <div className="flex justify-between items-center pb-4 border-b border-[var(--color-border)]">
+        <div className="p-4 border border-(--color-border) rounded-lg space-y-4">
+          <div className="flex justify-between items-center pb-4 border-b border-(--color-border)">
             <h4 className="font-semibold text-white">
               Model Assignments for {activeProvider.name}
             </h4>
@@ -411,7 +411,7 @@ const ModelsTab: React.FC<{
           </div>
 
           {errorStates[activeProvider.id] && (
-            <p className="text-xs text-[var(--color-danger-text)]">
+            <p className="text-xs text-(--color-danger-text)">
               Error: {errorStates[activeProvider.id]}
             </p>
           )}
@@ -427,10 +427,10 @@ const ModelsTab: React.FC<{
           <div className="space-y-5">
             {Object.entries(AI_TASK_DESCRIPTIONS).map(([task, details]) => (
               <div key={task}>
-                <label className="block text-sm font-semibold text-[var(--color-text-bright)]">
+                <label className="block text-sm font-semibold text-(--color-text-bright)">
                   {details.title}
                 </label>
-                <p className="text-xs text-[var(--color-text-muted)] mb-1.5">
+                <p className="text-xs text-(--color-text-muted) mb-1.5">
                   {details.description}
                 </p>
                 <div className="flex space-x-2">
@@ -441,7 +441,7 @@ const ModelsTab: React.FC<{
                     onChange={(e) =>
                       handleModelInputChange(task as AiTaskType, e.target.value)
                     }
-                    className="w-full p-3 text-sm rounded-md bg-[var(--color-input-bg)] border border-[var(--color-border)] focus:border-[var(--color-primary)] text-[var(--color-text-default)] font-mono focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+                    className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) font-mono focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
                     placeholder="Enter model ID"
                   />
                   {task === "generateImage" &&
@@ -527,7 +527,7 @@ const SettingsPanel: React.FC = () => {
   };
 
   const tabClasses = (tabName: Tab) =>
-    `px-4 py-2 text-sm font-semibold rounded-md transition-colors ${activeTab === tabName ? "bg-[var(--color-primary)]/20 text-[var(--color-primary)]" : "text-[var(--color-text-muted)] hover:bg-[var(--color-interactive-bg-hover)] hover:text-white"}`;
+    `px-4 py-2 text-sm font-semibold rounded-md transition-colors ${activeTab === tabName ? "bg-(--color-primary)/20 text-(--color-primary)" : "text-(--color-text-muted) hover:bg-(--color-interactive-bg-hover) hover:text-white"}`;
 
   return (
     <>
@@ -535,20 +535,20 @@ const SettingsPanel: React.FC = () => {
         className="fixed inset-0 bg-black/60 z-40 animate-fade-in"
         onClick={handleCancel}
       />
-      <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-[var(--color-base)]/80 backdrop-blur-xl shadow-2xl z-50 flex flex-col border-l border-[var(--color-border)] animate-slide-in-right">
-        <header className="flex items-center justify-between p-4 border-b border-[var(--color-secondary)]/30 flex-shrink-0">
-          <h2 className="text-lg font-semibold text-[var(--color-text-bright)]">
+      <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-(--color-base)/80 backdrop-blur-xl shadow-2xl z-50 flex flex-col border-l border-(--color-border) animate-slide-in-right">
+        <header className="flex items-center justify-between p-4 border-b border-(--color-secondary)/30 shrink-0">
+          <h2 className="text-lg font-semibold text-(--color-text-bright)">
             Application Settings
           </h2>
           <button
             onClick={handleCancel}
-            className="p-1 rounded-full hover:bg-[var(--color-interactive-bg-hover)]"
+            className="p-1 rounded-full hover:bg-(--color-interactive-bg-hover)"
           >
             <XIcon className="h-5 w-5" />
           </button>
         </header>
 
-        <nav className="flex items-center space-x-2 p-4 border-b border-[var(--color-secondary)]/30 flex-shrink-0">
+        <nav className="flex items-center space-x-2 p-4 border-b border-(--color-secondary)/30 shrink-0">
           <button
             onClick={() => setActiveTab("models")}
             className={tabClasses("models")}
@@ -569,7 +569,7 @@ const SettingsPanel: React.FC = () => {
           </button>
         </nav>
 
-        <div className="flex-grow p-6 overflow-y-auto">
+        <div className="grow p-6 overflow-y-auto">
           {activeTab === "prompts" && (
             <PromptsTab
               settings={localSettings}
@@ -590,10 +590,10 @@ const SettingsPanel: React.FC = () => {
           )}
         </div>
 
-        <footer className="flex items-center justify-between p-4 border-t border-[var(--color-secondary)]/30 flex-shrink-0 bg-[var(--color-base)]/90">
+        <footer className="flex items-center justify-between p-4 border-t border-(--color-secondary)/30 shrink-0 bg-(--color-base)/90">
           <SecondaryButton
             onClick={handleReset}
-            className="text-[var(--color-danger-text)] border-[var(--color-danger-border)] hover:bg-[var(--color-danger-bg)] hover:text-white"
+            className="text-(--color-danger-text) border-(--color-danger-border) hover:bg-(--color-danger-bg) hover:text-white"
           >
             Reset All to Defaults
           </SecondaryButton>

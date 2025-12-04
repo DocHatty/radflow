@@ -12,10 +12,10 @@ const Accordion: React.FC<AccordionProps> = ({ title, children, startOpen = fals
   const toggleOpen = () => setIsOpen(!isOpen);
 
   return (
-    <div className="border border-[var(--color-border)] rounded-lg bg-[var(--color-panel-bg)]/50">
+    <div className="border border-(--color-border) rounded-lg bg-(--color-panel-bg)/50">
       <button
         onClick={toggleOpen}
-        className="w-full flex justify-between items-center p-4 text-left font-semibold text-[var(--color-text-bright)] hover:bg-[var(--color-interactive-bg-hover)] transition-colors rounded-t-lg"
+        className="w-full flex justify-between items-center p-4 text-left font-semibold text-(--color-text-bright) hover:bg-(--color-interactive-bg-hover) transition-colors rounded-t-lg"
         aria-expanded={isOpen}
       >
         <span>{title}</span>
@@ -32,7 +32,7 @@ const Accordion: React.FC<AccordionProps> = ({ title, children, startOpen = fals
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
       >
-        <div className="p-4 border-t border-[var(--color-border)]">
+        <div className="p-4 border-t border-(--color-border)">
             {children}
         </div>
       </div>

@@ -4,7 +4,7 @@ import PriorReportArea from '../PriorReportArea';
 import VerificationWorkbench from '../VerificationWorkbench';
 
 const VerificationStage: React.FC = () => (
-  <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 w-full flex-grow">
+  <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 w-full grow">
     <div className="animate-slide-in-left">
       <ClinicalBrief />
     </div>

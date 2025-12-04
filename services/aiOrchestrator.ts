@@ -139,7 +139,11 @@ const TASK_CONFIGS: Record<AiTaskType, TaskConfig> = {
 
 export const runAiTask = async <T>(
   task: AiTaskType,
-  payload: { prompt: string; onChunk?: (chunk: string) => void },
+  payload: {
+    prompt: string;
+    onChunk?: (chunk: string) => void;
+    signal?: AbortSignal;
+  },
 ): Promise<T> => {
   const { settings } = useWorkflowStore.getState();
   const config = TASK_CONFIGS[task];
@@ -182,72 +186,32 @@ export const runAiTask = async <T>(
       prompt: payload.prompt,
       onChunk: payload.onChunk,
       temperature: config.temperature,
+      signal: payload.signal,
     };
 
     let result: any;
 
-    if (task === "getGuidance") {
-      if (activeProvider.providerId === "google") {
-        logEvent("Running guidance task without grounding (temperature 0.3).");
-        const fullText =
-          await multiProviderAiService.generateStream(commonPayload);
+    // Unified handler for appropriateness-related tasks (getGuidance is deprecated, use getAppropriateness)
+    if (task === "getGuidance" || task === "getAppropriateness") {
+      const taskLabel = task === "getGuidance" ? "guidance" : "appropriateness";
 
-        // Check if appropriateness is indeterminate
-        if (fullText.includes("[INDETERMINATE]")) {
-          logEvent("Appropriateness indeterminate, retrying with grounding...");
-
-          // Retry with grounding enabled for appropriateness section only
-          const groundingResult =
-            await multiProviderAiService.generateWithGrounding({
-              ...commonPayload,
-              prompt: `${payload.prompt}\n\nFOCUS: You previously could not determine appropriateness. Use Google Search to find the ACR Appropriateness Criteria and determine if this study is [CONSISTENT] or [INCONSISTENT]. Replace the [INDETERMINATE] tag with your determination.`,
-            });
-
-          // Replace the indeterminate section with grounded appropriateness
-          const groundedText = groundingResult.text;
-          const appropriatenessMatch = groundedText.match(
-            /\[(CONSISTENT|INCONSISTENT):[^\]]+\]/,
-          );
-
-          if (appropriatenessMatch) {
-            const updatedText = fullText.replace(
-              "[INDETERMINATE]",
-              appropriatenessMatch[0],
-            );
-            result = { text: updatedText, sources: groundingResult.sources };
-          } else {
-            // If grounding still couldn't determine, keep original
-            result = { text: fullText, sources: [] };
-          }
-        } else {
-          result = { text: fullText, sources: [] };
-        }
-      } else {
-        logEvent("Running guidance task with LLM knowledge (no grounding).");
-        const fullText =
-          await multiProviderAiService.generateStream(commonPayload);
-        result = { text: fullText, sources: [] };
-      }
-    } else if (task === "getAppropriateness") {
       if (activeProvider.providerId === "google") {
         logEvent(
-          "Running appropriateness task without grounding (temperature 0.3).",
+          `Running ${taskLabel} task without grounding (temperature 0.3).`,
         );
         const fullText =
           await multiProviderAiService.generateStream(commonPayload);
 
-        // Check if appropriateness is indeterminate
+        // Check if appropriateness is indeterminate and retry with grounding
         if (fullText.includes("[INDETERMINATE]")) {
           logEvent("Appropriateness indeterminate, retrying with grounding...");
 
-          // Retry with grounding enabled for appropriateness section only
           const groundingResult =
             await multiProviderAiService.generateWithGrounding({
               ...commonPayload,
               prompt: `${payload.prompt}\n\nFOCUS: You previously could not determine appropriateness. Use Google Search to find the ACR Appropriateness Criteria and determine if this study is [CONSISTENT] or [INCONSISTENT]. Replace the [INDETERMINATE] tag with your determination.`,
             });
 
-          // Replace the indeterminate section with grounded appropriateness
           const groundedText = groundingResult.text;
           const appropriatenessMatch = groundedText.match(
             /\[(CONSISTENT|INCONSISTENT):[^\]]+\]/,
@@ -260,7 +224,6 @@ export const runAiTask = async <T>(
             );
             result = { text: updatedText, sources: groundingResult.sources };
           } else {
-            // If grounding still couldn't determine, keep original
             result = { text: fullText, sources: [] };
           }
         } else {
@@ -268,7 +231,7 @@ export const runAiTask = async <T>(
         }
       } else {
         logEvent(
-          "Running appropriateness task with LLM knowledge (no grounding).",
+          `Running ${taskLabel} task with LLM knowledge (no grounding).`,
         );
         const fullText =
           await multiProviderAiService.generateStream(commonPayload);

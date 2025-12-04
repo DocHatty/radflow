@@ -13,7 +13,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ children, isLoading, disabl
       disabled={isDisabled}
       className={`
         relative overflow-hidden group
-        bg-gradient-to-r from-[var(--color-gradient-from)] to-[var(--color-gradient-to)]
+        bg-gradient-to-r from-(--color-gradient-from) to-(--color-gradient-to)
         text-white font-bold text-sm tracking-wide uppercase
         px-6 py-3 rounded-lg
         border border-white/20

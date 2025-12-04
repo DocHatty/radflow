@@ -15,13 +15,13 @@ const PriorReportArea: React.FC = () => {
 
   return (
     <Panel title="Prior Findings (Reference)" className="h-full">
-      <div className="text-[var(--color-text-muted)] text-sm leading-relaxed space-y-3">
+      <div className="text-(--color-text-muted) text-sm leading-relaxed space-y-3">
         {priors && priors.length > 0 ? (
           priors.map((prior, index) => (
-            <div key={index} className="bg-[var(--color-interactive-bg)]/50 p-3 rounded-md border border-[var(--color-border)]">
-                <p className="text-[var(--color-text-default)]">{prior.content}</p>
+            <div key={index} className="bg-(--color-interactive-bg)/50 p-3 rounded-md border border-(--color-border)">
+                <p className="text-(--color-text-default)">{prior.content}</p>
                 {prior.date && (
-                    <p className="text-xs text-[var(--color-text-muted)] font-mono mt-1.5 pt-1.5 border-t border-[var(--color-border)]">Date: {prior.date}</p>
+                    <p className="text-xs text-(--color-text-muted) font-mono mt-1.5 pt-1.5 border-t border-(--color-border)">Date: {prior.date}</p>
                 )}
             </div>
           ))

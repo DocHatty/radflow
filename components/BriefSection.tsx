@@ -26,20 +26,20 @@ const BriefSection: React.FC<BriefSectionProps> = ({ title, items, onUpdate, onR
 
   return (
     <div className="mb-4">
-      <h4 className="text-xs font-bold uppercase text-[var(--color-secondary)] tracking-wider mb-2">{title}</h4>
+      <h4 className="text-xs font-bold uppercase text-(--color-secondary) tracking-wider mb-2">{title}</h4>
       <ul className="space-y-1.5 text-sm">
         {activeItemsWithOriginalIndex.map((item) => (
           <li key={item.originalIndex} className="flex items-start justify-between group">
             <EditableField
               value={item.value}
               onSave={(newValue) => onUpdate(item.originalIndex, newValue)}
-              className="flex-grow text-[var(--color-text-default)]"
+              className="grow text-(--color-text-default)"
             />
             {isRejectable && (
               <button
                 onClick={() => onReject(item.originalIndex)}
                 title={`Reject ${title.slice(0, -1)}`}
-                className="ml-2 p-1 rounded-full text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 hover:bg-[var(--color-interactive-bg-hover)] hover:text-[var(--color-danger-text)] transition-opacity"
+                className="ml-2 p-1 rounded-full text-(--color-text-muted) opacity-0 group-hover:opacity-100 hover:bg-(--color-interactive-bg-hover) hover:text-(--color-danger-text) transition-opacity"
               >
                 <XIcon className="h-4 w-4" />
               </button>

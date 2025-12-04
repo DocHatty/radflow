@@ -9,6 +9,7 @@ interface AiRequestPayload {
   prompt: string;
   onChunk?: (chunk: string) => void;
   temperature?: number;
+  signal?: AbortSignal; // Support for request cancellation
 }
 
 // --- Google GenAI Implementation ---
@@ -84,6 +85,11 @@ const runGoogleRequest = async (
 };
 
 const runGoogleStreamRequest = async (payload: AiRequestPayload) => {
+  // Check if already aborted before starting
+  if (payload.signal?.aborted) {
+    throw new DOMException("Request aborted", "AbortError");
+  }
+
   const ai = new GoogleGenAI({
     apiKey: payload.provider.apiKey || process.env.API_KEY,
   });
@@ -99,6 +105,10 @@ const runGoogleStreamRequest = async (payload: AiRequestPayload) => {
 
   let fullText = "";
   for await (const chunk of stream) {
+    // Check for abort on each chunk
+    if (payload.signal?.aborted) {
+      throw new DOMException("Request aborted", "AbortError");
+    }
     const text = chunk.text;
     fullText += text;
     payload.onChunk?.(text || "");
@@ -183,6 +193,7 @@ const runFetchStreamRequest = async (
     method: "POST",
     headers,
     body: JSON.stringify(body),
+    signal: payload.signal, // Pass abort signal to fetch
   });
 
   if (!response.ok) {

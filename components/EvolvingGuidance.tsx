@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, memo } from "react";
 import { WarningIcon, CheckCircleIcon, QuestionMarkCircleIcon } from "./Icons";
 import LoadingSpinner from "./LoadingSpinner";
 import EmptyState from "./EmptyState";
@@ -11,15 +11,23 @@ import { RundownSection } from "../services/rundownService";
 const formatContent = (content: string): React.ReactNode => {
   if (!content) return null;
 
+  // Clean up common AI artifacts: "undefined", trailing whitespace, etc.
+  const cleanedContent = content
+    .replace(/undefined/gi, "")
+    .replace(/\s+$/, "")
+    .trim();
+
+  if (!cleanedContent) return null;
+
   // Split by bullet points (•) or numbered items (1. 2. etc) and filter empty
-  const lines = content
+  const lines = cleanedContent
     .split(/(?=•)|(?=\d+\.\s)/)
     .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+    .filter((line) => line.length > 0 && line.toLowerCase() !== "undefined");
 
   if (lines.length <= 1) {
     // No bullets/numbers found, just return the content
-    return <span>{content}</span>;
+    return <span>{cleanedContent}</span>;
   }
 
   return (
@@ -31,7 +39,7 @@ const formatContent = (content: string): React.ReactNode => {
 
         return (
           <li key={i} className="flex gap-2">
-            <span className="text-[var(--color-primary)] flex-shrink-0">
+            <span className="text-(--color-primary) shrink-0">
               {isNumbered ? `${i + 1}.` : "•"}
             </span>
             <span>{cleanLine}</span>
@@ -42,54 +50,52 @@ const formatContent = (content: string): React.ReactNode => {
   );
 };
 
-// Compact section card for rundown items
-const SectionCard: React.FC<{ section: RundownSection; compact?: boolean }> = ({
-  section,
-  compact = false,
-}) => {
-  if (!section) return null;
+// Compact section card for rundown items - memoized to prevent unnecessary re-renders
+const SectionCard: React.FC<{ section: RundownSection; compact?: boolean }> =
+  memo(({ section, compact = false }) => {
+    if (!section) return null;
 
-  // Don't render if no content and not loading
-  if (!section.content && !section.isLoading && !section.error) return null;
+    // Don't render if no content and not loading
+    if (!section.content && !section.isLoading && !section.error) return null;
 
-  return (
-    <div
-      className={`bg-[var(--color-interactive-bg)] border border-[var(--color-border)] rounded ${compact ? "p-2" : "p-3"}`}
-    >
-      <h3 className="text-xs font-semibold text-[var(--color-primary)] uppercase tracking-wide mb-2">
-        {section.title}
-      </h3>
-      {section.isLoading ? (
-        <div className="flex items-center gap-2 py-1">
-          <LoadingSpinner className="w-3 h-3 text-[var(--color-primary)]" />
-          <span className="text-xs text-[var(--color-text-muted)]">
-            Loading...
-          </span>
-        </div>
-      ) : section.error ? (
-        <div className="text-xs text-[var(--color-danger-text)]">
-          {section.error}
-        </div>
-      ) : section.content ? (
-        <div className="text-xs text-[var(--color-text-default)] leading-relaxed">
-          {formatContent(section.content)}
-        </div>
-      ) : null}
-    </div>
-  );
-};
+    return (
+      <div
+        className={`bg-(--color-interactive-bg) border border-(--color-border) rounded ${compact ? "p-2" : "p-3"}`}
+      >
+        <h3 className="text-xs font-semibold text-(--color-primary) uppercase tracking-wide mb-2">
+          {section.title}
+        </h3>
+        {section.isLoading ? (
+          <div className="flex items-center gap-2 py-1">
+            <LoadingSpinner className="w-3 h-3 text-(--color-primary)" />
+            <span className="text-xs text-(--color-text-muted)">
+              Loading...
+            </span>
+          </div>
+        ) : section.error ? (
+          <div className="text-xs text-(--color-danger-text)">
+            {section.error}
+          </div>
+        ) : section.content ? (
+          <div className="text-xs text-(--color-text-default) leading-relaxed">
+            {formatContent(section.content)}
+          </div>
+        ) : null}
+      </div>
+    );
+  });
 
-// Appropriateness badge component
+// Appropriateness badge component - memoized to prevent unnecessary re-renders
 const AppropriatenessBadge: React.FC<{
   status: "consistent" | "inconsistent" | "indeterminate" | null;
   reason?: string | null;
   isLoading?: boolean;
-}> = ({ status, reason, isLoading }) => {
+}> = memo(({ status, reason, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="text-sm px-4 py-3 rounded-lg mb-3 border bg-[var(--color-interactive-bg)] border-[var(--color-border)] flex items-center gap-2">
-        <LoadingSpinner className="w-5 h-5 text-[var(--color-primary)]" />
-        <span className="text-[var(--color-text-muted)]">
+      <div className="text-sm px-4 py-3 rounded-lg mb-3 border bg-(--color-interactive-bg) border-(--color-border) flex items-center gap-2">
+        <LoadingSpinner className="w-5 h-5 text-(--color-primary)" />
+        <span className="text-(--color-text-muted)">
           Evaluating appropriateness...
         </span>
       </div>
@@ -104,10 +110,10 @@ const AppropriatenessBadge: React.FC<{
   if (status === "consistent") {
     return (
       <div
-        className={`${baseClasses} bg-[var(--color-success-bg)] border-[var(--color-success-border)] text-[var(--color-success-text)]`}
+        className={`${baseClasses} bg-(--color-success-bg) border-(--color-success-border) text-(--color-success-text)`}
       >
         <div className="flex items-center font-bold">
-          <CheckCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+          <CheckCircleIcon className="h-5 w-5 mr-2 shrink-0" />
           <span>Appropriate Study</span>
         </div>
         {reason && (
@@ -120,10 +126,10 @@ const AppropriatenessBadge: React.FC<{
   if (status === "inconsistent") {
     return (
       <div
-        className={`${baseClasses} bg-[var(--color-warning-bg)] text-[var(--color-warning-text)] animate-[pulse-border-warning_2s_ease-in-out_infinite] border-[var(--color-warning-border)]`}
+        className={`${baseClasses} bg-(--color-warning-bg) text-(--color-warning-text) animate-[pulse-border-warning_2s_ease-in-out_infinite] border-(--color-warning-border)`}
       >
         <div className="flex items-center font-bold">
-          <WarningIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+          <WarningIcon className="h-5 w-5 mr-2 shrink-0" />
           <span>Suboptimal Protocol</span>
         </div>
         {reason && (
@@ -136,10 +142,10 @@ const AppropriatenessBadge: React.FC<{
   if (status === "indeterminate") {
     return (
       <div
-        className={`${baseClasses} bg-[var(--color-interactive-bg)] border-[var(--color-border)] text-[var(--color-text-muted)]`}
+        className={`${baseClasses} bg-(--color-interactive-bg) border-(--color-border) text-(--color-text-muted)`}
       >
         <div className="flex items-center font-bold">
-          <QuestionMarkCircleIcon className="h-5 w-5 mr-2 flex-shrink-0" />
+          <QuestionMarkCircleIcon className="h-5 w-5 mr-2 shrink-0" />
           <span>Appropriateness Indeterminate</span>
         </div>
         <p className="mt-1.5 pl-7 opacity-90 text-xs font-normal">
@@ -150,7 +156,7 @@ const AppropriatenessBadge: React.FC<{
   }
 
   return null;
-};
+});
 
 const ClinicalGuidancePanel: React.FC = () => {
   const {
@@ -167,7 +173,12 @@ const ClinicalGuidancePanel: React.FC = () => {
     activeProcess: state.activeProcess,
   }));
 
-  const { status, reason } = parseGuidance(guidanceContent);
+  // Memoize parseGuidance to avoid re-parsing on every render
+  const { status, reason } = useMemo(
+    () => parseGuidance(guidanceContent),
+    [guidanceContent],
+  );
+
   const isLoading = activeProcess === "generating" || isFetchingGuidance;
 
   // Check if we have any rundown content
@@ -223,19 +234,19 @@ const ClinicalGuidancePanel: React.FC = () => {
               {rundownData.bottomLine &&
                 (rundownData.bottomLine.content ||
                   rundownData.bottomLine.isLoading) && (
-                  <div className="bg-[var(--color-primary)] bg-opacity-10 border border-[var(--color-primary)] border-opacity-30 rounded-lg p-3">
-                    <h3 className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-wide mb-1">
+                  <div className="bg-(--color-primary) bg-opacity-10 border border-(--color-primary) border-opacity-30 rounded-lg p-3">
+                    <h3 className="text-xs font-bold text-(--color-primary) uppercase tracking-wide mb-1">
                       Bottom Line
                     </h3>
                     {rundownData.bottomLine.isLoading ? (
                       <div className="flex items-center gap-2">
-                        <LoadingSpinner className="w-4 h-4 text-[var(--color-primary)]" />
-                        <span className="text-xs text-[var(--color-text-muted)]">
+                        <LoadingSpinner className="w-4 h-4 text-(--color-primary)" />
+                        <span className="text-xs text-(--color-text-muted)">
                           Synthesizing...
                         </span>
                       </div>
                     ) : (
-                      <p className="text-sm text-[var(--color-text-default)] font-medium">
+                      <p className="text-sm text-(--color-text-default) font-medium">
                         {rundownData.bottomLine.content}
                       </p>
                     )}
@@ -247,8 +258,8 @@ const ClinicalGuidancePanel: React.FC = () => {
           {/* Show loading state for rundown if no data yet */}
           {!rundownData && isGeneratingRundown && (
             <div className="flex flex-col items-center justify-center py-8 gap-3">
-              <LoadingSpinner className="w-8 h-8 text-[var(--color-primary)]" />
-              <span className="text-sm text-[var(--color-text-muted)]">
+              <LoadingSpinner className="w-8 h-8 text-(--color-primary)" />
+              <span className="text-sm text-(--color-text-muted)">
                 Generating clinical guidance...
               </span>
             </div>

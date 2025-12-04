@@ -20,7 +20,7 @@ const EditableField: React.FC<{ value: string | null; onSave: (newValue: string)
             onBlur={handleBlur}
             role="textbox"
             aria-multiline="false"
-            className={`outline-none focus:bg-[var(--color-interactive-bg-hover)] rounded-sm px-2 -mx-2 py-1 -my-1 transition-all focus:ring-1 focus:ring-[var(--color-primary)] ${className}`}
+            className={`outline-none focus:bg-(--color-interactive-bg-hover) rounded-sm px-2 -mx-2 py-1 -my-1 transition-all focus:ring-1 focus:ring-(--color-primary) ${className}`}
             dangerouslySetInnerHTML={{ __html: value || '' }}
         />
     );

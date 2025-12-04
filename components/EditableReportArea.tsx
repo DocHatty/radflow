@@ -47,7 +47,7 @@ const ReportToolbar: React.FC<{
       aria-label="Copy Report"
     >
       {isCopied ? (
-        <CheckmarkIcon className="h-5 w-5 text-[var(--color-success-text)]" />
+        <CheckmarkIcon className="h-5 w-5 text-(--color-success-text)" />
       ) : (
         <CopyIcon className="h-5 w-5" />
       )}
@@ -200,8 +200,8 @@ const EditableReportArea: React.FC = () => {
       <div className="relative flex-1 min-h-0 overflow-hidden">
         {(isLoading || isRefining) && !rawContent && (
           <div className="absolute inset-0 flex flex-col justify-center items-center bg-transparent z-10">
-            <LoadingSpinner className="h-10 w-10 text-[var(--color-primary)]" />
-            <p className="mt-4 text-sm text-[var(--color-text-muted)]">
+            <LoadingSpinner className="h-10 w-10 text-(--color-primary)" />
+            <p className="mt-4 text-sm text-(--color-text-muted)">
               {isLoading
                 ? "Generating initial report draft..."
                 : "Refining report..."}
@@ -214,13 +214,13 @@ const EditableReportArea: React.FC = () => {
           suppressContentEditableWarning={true}
           onInput={handleInput}
           data-placeholder="Report content will appear here..."
-          className="glass-input bg-transparent border-none rounded-none report-font w-full h-full p-4 focus:outline-none resize-none text-[var(--color-text-default)] text-sm leading-relaxed overflow-y-auto whitespace-pre-wrap"
+          className="glass-input bg-transparent border-none rounded-none report-font w-full h-full p-4 focus:outline-none resize-none text-(--color-text-default) text-sm leading-relaxed overflow-y-auto whitespace-pre-wrap"
           role="textbox"
           aria-multiline="true"
           dangerouslySetInnerHTML={{ __html: highlightedHtml }}
         />
         {(isIntegrating || isApplyingChanges) && (
-          <div className="absolute bottom-2 right-2 text-xs text-[var(--color-primary)] bg-[var(--color-panel-bg)] px-2 py-1 rounded shadow-lg">
+          <div className="absolute bottom-2 right-2 text-xs text-(--color-primary) bg-(--color-panel-bg) px-2 py-1 rounded shadow-lg">
             {isIntegrating
               ? "Integrating dictation..."
               : "Applying recommendations..."}

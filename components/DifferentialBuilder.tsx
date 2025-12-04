@@ -53,8 +53,8 @@ export const DifferentialBuilder: React.FC = () => {
         if (isLoading) {
             return (
                 <div className="flex flex-col justify-center items-center h-full text-center">
-                    <LoadingSpinner className="h-8 w-8 text-[var(--color-primary)]" />
-                    <p className="mt-3 text-sm text-[var(--color-text-muted)]">Generating differential diagnoses based on findings...</p>
+                    <LoadingSpinner className="h-8 w-8 text-(--color-primary)" />
+                    <p className="mt-3 text-sm text-(--color-text-muted)">Generating differential diagnoses based on findings...</p>
                 </div>
             );
         }
@@ -71,17 +71,17 @@ export const DifferentialBuilder: React.FC = () => {
                         <div
                             key={index}
                             onClick={() => handleToggle(dx)}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 flex items-start space-x-4 ${isSelected ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/50 ring-1 ring-[var(--color-primary)]/50' : 'bg-[var(--color-interactive-bg)]/50 border-[var(--color-border)] hover:border-[var(--color-border-hover)] hover:bg-[var(--color-interactive-bg-hover)]'}`}
+                            className={`p-3 rounded-lg border cursor-pointer transition-all duration-200 flex items-start space-x-4 ${isSelected ? 'bg-(--color-primary)/10 border-(--color-primary)/50 ring-1 ring-(--color-primary)/50' : 'bg-(--color-interactive-bg)/50 border-(--color-border) hover:border-(--color-border-hover) hover:bg-(--color-interactive-bg-hover)'}`}
                         >
-                            <div className={`mt-1 flex-shrink-0 h-5 w-5 rounded-md flex items-center justify-center border-2 transition-all duration-200 ${isSelected ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'border-gray-500 bg-[var(--color-base)]'}`}>
+                            <div className={`mt-1 shrink-0 h-5 w-5 rounded-md flex items-center justify-center border-2 transition-all duration-200 ${isSelected ? 'bg-(--color-primary) border-(--color-primary)' : 'border-gray-500 bg-(--color-base)'}`}>
                                 {isSelected && <CheckIcon className="h-4 w-4 text-white" strokeWidth={3} />}
                             </div>
-                            <div className="flex-grow">
+                            <div className="grow">
                                 <div className="flex justify-between items-center">
-                                    <h5 className="font-semibold text-[var(--color-text-bright)]">{dx.name}</h5>
+                                    <h5 className="font-semibold text-(--color-text-bright)">{dx.name}</h5>
                                     <LikelihoodBadge likelihood={dx.likelihood} />
                                 </div>
-                                <p className="text-xs text-[var(--color-text-muted)] mt-1">{dx.rationale}</p>
+                                <p className="text-xs text-(--color-text-muted) mt-1">{dx.rationale}</p>
                             </div>
                         </div>
                     );
@@ -92,7 +92,7 @@ export const DifferentialBuilder: React.FC = () => {
 
     return (
         <div className="flex flex-col h-full">
-            <div className="flex-grow overflow-y-auto pr-2">
+            <div className="grow overflow-y-auto pr-2">
                 {renderContent()}
             </div>
              <div className="flex justify-end pt-4 mt-auto">
