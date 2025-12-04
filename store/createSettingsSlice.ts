@@ -102,6 +102,23 @@ export const createSettingsSlice: StateCreator<
               DEFAULT_SETTINGS.prompts.APPROPRIATENESS_SYSTEM_INSTRUCTION;
             parsed.prompts.DETAILED_GUIDANCE_SYSTEM_INSTRUCTION =
               DEFAULT_SETTINGS.prompts.DETAILED_GUIDANCE_SYSTEM_INSTRUCTION;
+            // Force update ALL rundown prompts to use new concise format
+            parsed.prompts.RUNDOWN_APPROPRIATENESS_INSTRUCTION =
+              DEFAULT_SETTINGS.prompts.RUNDOWN_APPROPRIATENESS_INSTRUCTION;
+            parsed.prompts.RUNDOWN_TOP_FACTS_INSTRUCTION =
+              DEFAULT_SETTINGS.prompts.RUNDOWN_TOP_FACTS_INSTRUCTION;
+            parsed.prompts.RUNDOWN_WHAT_TO_LOOK_FOR_INSTRUCTION =
+              DEFAULT_SETTINGS.prompts.RUNDOWN_WHAT_TO_LOOK_FOR_INSTRUCTION;
+            parsed.prompts.RUNDOWN_PITFALLS_INSTRUCTION =
+              DEFAULT_SETTINGS.prompts.RUNDOWN_PITFALLS_INSTRUCTION;
+            parsed.prompts.RUNDOWN_SEARCH_PATTERN_INSTRUCTION =
+              DEFAULT_SETTINGS.prompts.RUNDOWN_SEARCH_PATTERN_INSTRUCTION;
+            parsed.prompts.RUNDOWN_PERTINENT_NEGATIVES_INSTRUCTION =
+              DEFAULT_SETTINGS.prompts.RUNDOWN_PERTINENT_NEGATIVES_INSTRUCTION;
+            parsed.prompts.RUNDOWN_CLASSIC_SIGNS_INSTRUCTION =
+              DEFAULT_SETTINGS.prompts.RUNDOWN_CLASSIC_SIGNS_INSTRUCTION;
+            parsed.prompts.RUNDOWN_BOTTOM_LINE_INSTRUCTION =
+              DEFAULT_SETTINGS.prompts.RUNDOWN_BOTTOM_LINE_INSTRUCTION;
           }
 
           // CRITICAL FIX: Merge new model assignments (e.g. getAppropriateness)
@@ -110,7 +127,7 @@ export const createSettingsSlice: StateCreator<
               const assignments = parsed.modelAssignments[providerKey];
               const defaultAssignments =
                 DEFAULT_SETTINGS.modelAssignments[
-                DEFAULT_SETTINGS.providers[0].id
+                  DEFAULT_SETTINGS.providers[0].id
                 ];
 
               // Add any missing keys from default assignments
@@ -219,7 +236,7 @@ export const createSettingsSlice: StateCreator<
         ...state.settings.modelAssignments,
         [newProvider.id]: {
           ...DEFAULT_SETTINGS.modelAssignments[
-          DEFAULT_SETTINGS.providers[0].id
+            DEFAULT_SETTINGS.providers[0].id
           ],
         },
       };

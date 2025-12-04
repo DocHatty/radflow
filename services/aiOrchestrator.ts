@@ -287,6 +287,10 @@ export const runAiTask = async <T>(
           // and also returns the full text upon completion.
           result = await multiProviderAiService.generateStream(commonPayload);
           break;
+        case "normal":
+          // Normal request type - just returns the text without streaming
+          result = await multiProviderAiService.generateStream(commonPayload);
+          break;
         case "image":
           result = await multiProviderAiService.generateImage(commonPayload);
           break;

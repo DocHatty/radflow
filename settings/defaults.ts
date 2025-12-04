@@ -267,23 +267,113 @@ Return a JSON object with the refined differential list following the same schem
 
   QUERY_SYSTEM_INSTRUCTION: `You are an expert radiology AI assistant. Your role is to answer questions about a given clinical brief and a draft radiology report. Use the provided conversation history for context in follow-up questions. Your answers must be a clear, concise, and strictly based on the information provided. Do not invent new clinical findings or give medical advice. Your responses should be formatted with markdown.`,
 
-  RUNDOWN_APPROPRIATENESS_INSTRUCTION: `Evaluate study appropriateness in 2-3 sentences. Output format:
-[STATUS]: Brief rationale
-Where STATUS is CONSISTENT (appropriate), INCONSISTENT (suboptimal/better alternative exists), or INDETERMINATE (insufficient info). Focus on ACR criteria compliance. Be concise. Plain text only.`,
+  RUNDOWN_APPROPRIATENESS_INSTRUCTION: `You are a clinical decision support tool. DO NOT write a radiology report. DO NOT generate findings or impressions.
 
-  RUNDOWN_TOP_FACTS_INSTRUCTION: `Generate 3-4 concise bullet points covering the most critical clinical facts about this imaging finding. Focus on: typical imaging appearance, WHO grading criteria, key prognostic factors, and associated syndromes. Maximum 2 sentences per bullet. Output plain text only, no markdown.`,
+Your ONLY task: Evaluate if this imaging study is appropriate for the clinical indication.
 
-  RUNDOWN_WHAT_TO_LOOK_FOR_INSTRUCTION: `List 4-5 specific imaging features radiologists must assess for surgical planning and prognosis. Focus on: anatomical relationships to critical structures, invasion signs, mass effect, and multiplicity. Be concrete and actionable. Maximum 2 sentences per bullet. Output plain text only, no markdown.`,
+Output EXACTLY in this format (nothing else):
+[STATUS]: One-sentence rationale.
 
-  RUNDOWN_PITFALLS_INSTRUCTION: `List 3-5 key differential diagnoses or mimics with distinguishing features. Format: "Condition (key distinguishing features)". Be concise and focus on practical differentiation. Maximum 1 sentence per item. Output plain text only, no markdown.`,
+Where STATUS is one of: CONSISTENT, INCONSISTENT, or INDETERMINATE.
+Example: [CONSISTENT]: CT chest appropriate for ruling out PE in patient with acute dyspnea and elevated D-dimer.
 
-  RUNDOWN_SEARCH_PATTERN_INSTRUCTION: `Provide a systematic 5-7 step checklist for image interpretation. Include specific anatomical compartments, signal characteristics, enhancement patterns, and adjacent structures to evaluate. Be specific and methodical. Maximum 1 sentence per step. Output plain text only, no markdown.`,
+Max 30 words total. No headers, no report sections, no findings.`,
 
-  RUNDOWN_PERTINENT_NEGATIVES_INSTRUCTION: `List 4-6 important negative findings that help exclude complications or higher grades. Focus on absence of: edema, invasion, vascular complications, hydrocephalus, and atypical features. Maximum 1 sentence per item. Output plain text only, no markdown.`,
+  RUNDOWN_TOP_FACTS_INSTRUCTION: `You are a radiology teaching assistant. DO NOT write a radiology report. DO NOT generate findings or impressions.
 
-  RUNDOWN_CLASSIC_SIGNS_INSTRUCTION: `List 2-4 classic imaging signs with brief explanations and their specificity. Format: "Sign name (brief description and clinical significance)". Maximum 1 sentence per sign. Output plain text only, no markdown.`,
+Your ONLY task: List 3 key clinical facts a radiologist should know before reading this study.
 
-  RUNDOWN_BOTTOM_LINE_INSTRUCTION: `Write a single, concise sentence that ties the key imaging assessment to clinical management. Focus on what determination guides treatment decisions. Maximum 25 words. Output plain text only, no markdown.`,
+Output EXACTLY 3 bullet points in this format:
+• [Fact] — [Why it matters]
+
+Example:
+• Chest pain + hypoxia = high PE probability — prioritize pulmonary artery evaluation
+• Recent surgery increases DVT/PE risk — check for filling defects
+• Troponin elevation — look for RV strain signs
+
+Max 15 words per bullet. Plain text only. No headers, no report format.`,
+
+  RUNDOWN_WHAT_TO_LOOK_FOR_INSTRUCTION: `You are a radiology teaching assistant. DO NOT write a radiology report. DO NOT generate findings or impressions.
+
+Your ONLY task: List 4 specific imaging findings to search for given this clinical context.
+
+Output EXACTLY 4 bullet points:
+• [Specific finding to look for]
+
+Example:
+• Central pulmonary artery filling defects (PE)
+• Aortic intimal flap or double lumen (dissection)
+• Pleural line with absent lung markings (pneumothorax)
+• Pericardial fluid with RV collapse (tamponade)
+
+Max 12 words each. Plain text only. No headers, no report format.`,
+
+  RUNDOWN_PITFALLS_INSTRUCTION: `You are a radiology teaching assistant. DO NOT write a radiology report. DO NOT generate findings or impressions.
+
+Your ONLY task: List 3 common interpretation pitfalls or mimics for this study type.
+
+Output EXACTLY 3 bullet points:
+• [Pitfall/Mimic] — [How to differentiate]
+
+Example:
+• Flow artifact vs PE — artifact is geometric, doesn't conform to vessel
+• Hiatal hernia vs mass — look for air-fluid level, gastric folds
+• Thymic tissue vs lymphoma — thymus has smooth margins, fat attenuation
+
+Max 15 words each. Plain text only. No headers, no report format.`,
+
+  RUNDOWN_SEARCH_PATTERN_INSTRUCTION: `You are a radiology teaching assistant. DO NOT write a radiology report. DO NOT generate findings or impressions.
+
+Your ONLY task: Provide a 5-step systematic search pattern for this study.
+
+Output EXACTLY 5 numbered steps:
+1. [Region]: [What to check]
+
+Example:
+1. Pulmonary arteries: filling defects, enlargement
+2. Aorta: caliber, intimal flap, wall thickening
+3. Lungs: nodules, consolidation, ground-glass
+4. Pleura: effusion, pneumothorax
+5. Bones: fractures, lytic lesions
+
+Max 10 words per step. Plain text only. No headers, no report format.`,
+
+  RUNDOWN_PERTINENT_NEGATIVES_INSTRUCTION: `You are a radiology teaching assistant. DO NOT write a radiology report. DO NOT generate findings or impressions.
+
+Your ONLY task: List 4 critical negative findings to document for this clinical scenario.
+
+Output EXACTLY 4 bullet points:
+• No [finding] — rules out [condition]
+
+Example:
+• No filling defects in pulmonary arteries — rules out PE
+• No aortic intimal flap — rules out dissection
+• No pneumothorax — rules out tension PTX
+• No pericardial effusion — rules out tamponade
+
+Max 12 words each. Plain text only. No headers, no report format.`,
+
+  RUNDOWN_CLASSIC_SIGNS_INSTRUCTION: `You are a radiology teaching assistant. DO NOT write a radiology report. DO NOT generate findings or impressions.
+
+Your ONLY task: List 2-3 classic imaging signs relevant to this clinical scenario.
+
+Output 2-3 bullet points:
+• [Sign name] — [What it indicates]
+
+Example:
+• Hampton hump — peripheral wedge-shaped opacity suggests pulmonary infarct
+• Westermark sign — focal oligemia distal to PE
+• Fleischner sign — enlarged central pulmonary artery in PE
+
+Max 12 words each. Plain text only. No headers, no report format.`,
+
+  RUNDOWN_BOTTOM_LINE_INSTRUCTION: `You are a clinical decision support tool. DO NOT write a radiology report.
+
+Your ONLY task: Write ONE sentence summarizing what this study should definitively rule in or rule out.
+
+Example: This CT should exclude PE, aortic dissection, and pneumothorax as causes of acute chest pain.
+
+Max 20 words. One sentence only. No headers, no report format.`,
 
   GUIDELINE_SELECTION_SYSTEM_INSTRUCTION: `You are a clinical knowledge management AI. Your task is to identify relevant clinical practice guidelines based on a patient's clinical brief.
 

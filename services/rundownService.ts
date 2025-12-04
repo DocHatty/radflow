@@ -20,31 +20,32 @@ export interface RundownData {
   bottomLine: RundownSection;
 }
 
+// Note: Appropriateness is fetched separately via getAppropriateness task (with grounding support)
+// These are the parallel rundown sections only
 const SECTION_CONFIG: Array<{
   key: keyof RundownData;
   title: string;
   task: AiTaskType;
 }> = [
-  { key: "appropriateness", title: "Appropriateness", task: "rundownAppropriateness" },
   { key: "topFacts", title: "Top Facts", task: "rundownTopFacts" },
   {
     key: "whatToLookFor",
-    title: "What We're Really Looking For",
+    title: "What to Look For",
     task: "rundownWhatToLookFor",
   },
   {
     key: "pitfalls",
-    title: "Common Pitfalls/Mimics",
+    title: "Pitfalls & Mimics",
     task: "rundownPitfalls",
   },
   {
     key: "searchPattern",
-    title: "High-Yield Search Pattern",
+    title: "Search Pattern",
     task: "rundownSearchPattern",
   },
   {
     key: "pertinentNegatives",
-    title: "Pertinent Negatives That Matter",
+    title: "Pertinent Negatives",
     task: "rundownPertinentNegatives",
   },
   {
@@ -54,7 +55,7 @@ const SECTION_CONFIG: Array<{
   },
   {
     key: "bottomLine",
-    title: "One-Sentence Bottom Line",
+    title: "Bottom Line",
     task: "rundownBottomLine",
   },
 ];

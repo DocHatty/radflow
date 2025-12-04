@@ -306,46 +306,85 @@ export const createWorkflowSlice: StateCreator<
         set({ parsedInfo: parsedData, workflowStage: "verification" });
       }
 
-      // --- PRE-FETCH GUIDANCE IN BACKGROUND ---
+      // --- PRE-FETCH GUIDANCE IN BACKGROUND (PARALLEL) ---
       // Start guidance generation early while user reviews the verification screen
       const clinicalBrief = constructBriefFromParsedInput(parsedData);
 
-      logEvent("🚀 Starting pre-fetch of guidance in background...");
-      set({ isFetchingGuidance: true, guidanceContent: "" });
+      logEvent("🚀 Starting PARALLEL pre-fetch of guidance...");
+      set({
+        isFetchingGuidance: true,
+        guidanceContent: "",
+        rundownData: initializeRundownData(),
+        isGeneratingRundown: true,
+      });
 
-      // 1. Fetch Appropriateness (Fast, potentially grounded)
-      runAiTask<{ text: string; sources: any[] }>("getAppropriateness", {
+      // Mark all rundown sections as loading
+      set((state) => {
+        if (!state.rundownData) return state;
+        const updatedData = { ...state.rundownData };
+        Object.keys(updatedData).forEach((key) => {
+          updatedData[key as keyof RundownData].isLoading = true;
+        });
+        return { rundownData: updatedData };
+      });
+
+      const contextPrompt = `Study Type: ${parsedData.studyType?.value || "Unknown"}\nClinical Context: ${clinicalBrief}`;
+
+      // PARALLEL: Fire appropriateness and all rundown sections simultaneously
+      const appropriatenessPromise = runAiTask<{
+        text: string;
+        sources: any[];
+      }>("getAppropriateness", {
         prompt: clinicalBrief,
       })
         .then((result) => {
-          console.log("✅ Appropriateness raw result:", result);
+          console.log("✅ Appropriateness fetched!");
           set((state) => ({
             guidanceContent: result.text,
             guidanceSources: result.sources,
           }));
-          console.log("✅ Appropriateness fetched! Content:", result.text);
-
-          // 2. Fetch Detailed Guidance (Streamed, appended)
-          return runAiTask<string>("getDetailedGuidance", {
-            prompt: clinicalBrief,
-            onChunk: (chunk) => {
-              set((state) => ({
-                guidanceContent: state.guidanceContent + chunk,
-              }));
-            },
-          });
         })
+        .catch((error) => {
+          console.error("❌ Appropriateness fetch failed:", error);
+        });
+
+      // Fire all rundown sections in parallel
+      const rundownPromise = generateRundownParallel(
+        contextPrompt,
+        (key, content) => {
+          set((state) => {
+            if (!state.rundownData) return state;
+            const safeContent = content || "";
+            return {
+              rundownData: {
+                ...state.rundownData,
+                [key]: {
+                  ...state.rundownData[key],
+                  content: safeContent,
+                  isLoading: false,
+                  error: safeContent.startsWith("Error:")
+                    ? safeContent
+                    : undefined,
+                },
+              },
+            };
+          });
+        },
+      );
+
+      // Wait for both to complete
+      Promise.all([appropriatenessPromise, rundownPromise])
         .then(() => {
-          console.log("✅ Detailed guidance fetched!");
-          set({ isFetchingGuidance: false });
-          logEvent("✅ Guidance pre-fetch complete");
+          console.log("✅ All guidance fetched in parallel!");
+          set({ isFetchingGuidance: false, isGeneratingRundown: false });
+          logEvent("✅ Parallel guidance pre-fetch complete");
         })
         .catch((error) => {
           console.error("❌ Pre-fetch guidance failed:", error);
           logEvent("Pre-fetch guidance failed (will retry on confirm)", {
             error,
           });
-          set({ isFetchingGuidance: false });
+          set({ isFetchingGuidance: false, isGeneratingRundown: false });
         });
 
       // Also pre-fetch guideline selection
@@ -464,9 +503,11 @@ export const createWorkflowSlice: StateCreator<
 
     setProcess("generating");
 
-    // Store pre-fetched guidance/guidelines before clearing
+    // Store pre-fetched guidance/guidelines/rundown before clearing
     const preFetchedGuidance = guidanceContent;
     const preFetchedGuidelines = activeGuidelines;
+    const preFetchedRundown = get().rundownData;
+    const isRundownGenerating = get().isGeneratingRundown;
 
     set({
       workflowStage: "submitted",
@@ -474,6 +515,8 @@ export const createWorkflowSlice: StateCreator<
       editableReportContent: "",
       guidanceContent: preFetchedGuidance, // Preserve pre-fetched guidance
       activeGuidelines: preFetchedGuidelines, // Preserve pre-fetched guidelines
+      rundownData: preFetchedRundown, // Preserve pre-fetched rundown
+      isGeneratingRundown: isRundownGenerating, // Preserve loading state
       differentials: null,
     });
 
@@ -486,36 +529,73 @@ export const createWorkflowSlice: StateCreator<
     const { isFetchingGuidance } = get();
 
     if (!preFetchedGuidance && !isFetchingGuidance) {
-      console.log("⚠️ No pre-fetched guidance found, fetching now...");
-      logEvent("No pre-fetched guidance found, fetching now");
-      set({ isFetchingGuidance: true });
+      console.log(
+        "⚠️ No pre-fetched guidance found, fetching now (parallel)...",
+      );
+      logEvent("No pre-fetched guidance found, fetching now (parallel)");
+      set({
+        isFetchingGuidance: true,
+        rundownData: initializeRundownData(),
+        isGeneratingRundown: true,
+      });
 
-      // 1. Fetch Appropriateness
-      guidancePromise = runAiTask<{ text: string; sources: any[] }>(
-        "getAppropriateness",
-        { prompt: clinicalBrief },
-      )
+      // Mark all rundown sections as loading
+      set((state) => {
+        if (!state.rundownData) return state;
+        const updatedData = { ...state.rundownData };
+        Object.keys(updatedData).forEach((key) => {
+          updatedData[key as keyof RundownData].isLoading = true;
+        });
+        return { rundownData: updatedData };
+      });
+
+      const contextPrompt = `Study Type: ${parsedInfo.studyType?.value || "Unknown"}\nClinical Context: ${clinicalBrief}`;
+
+      // PARALLEL: Fetch appropriateness and rundown sections simultaneously
+      const appropriatenessPromise = runAiTask<{
+        text: string;
+        sources: any[];
+      }>("getAppropriateness", { prompt: clinicalBrief })
         .then((result) => {
           set({
             guidanceContent: result.text,
             guidanceSources: result.sources,
           });
-          // 2. Fetch Detailed Guidance
-          return runAiTask<string>("getDetailedGuidance", {
-            prompt: clinicalBrief,
-            onChunk: (chunk) => {
-              set((state) => ({
-                guidanceContent: state.guidanceContent + chunk,
-              }));
-            },
-          });
         })
+        .catch((error) => {
+          logEvent("Appropriateness task failed", { error });
+        });
+
+      const rundownPromise = generateRundownParallel(
+        contextPrompt,
+        (key, content) => {
+          set((state) => {
+            if (!state.rundownData) return state;
+            const safeContent = content || "";
+            return {
+              rundownData: {
+                ...state.rundownData,
+                [key]: {
+                  ...state.rundownData[key],
+                  content: safeContent,
+                  isLoading: false,
+                  error: safeContent.startsWith("Error:")
+                    ? safeContent
+                    : undefined,
+                },
+              },
+            };
+          });
+        },
+      );
+
+      guidancePromise = Promise.all([appropriatenessPromise, rundownPromise])
         .then(() => {
-          set({ isFetchingGuidance: false });
+          set({ isFetchingGuidance: false, isGeneratingRundown: false });
         })
         .catch((error) => {
           logEvent("Guidance task failed but workflow continues", { error });
-          set({ isFetchingGuidance: false });
+          set({ isFetchingGuidance: false, isGeneratingRundown: false });
         });
     } else {
       console.log(
@@ -904,14 +984,17 @@ export const createWorkflowSlice: StateCreator<
       await generateRundownParallel(contextPrompt, (key, content) => {
         set((state) => {
           if (!state.rundownData) return state;
+          const safeContent = content || "";
           return {
             rundownData: {
               ...state.rundownData,
               [key]: {
                 ...state.rundownData[key],
-                content,
+                content: safeContent,
                 isLoading: false,
-                error: content.startsWith("Error:") ? content : undefined,
+                error: safeContent.startsWith("Error:")
+                  ? safeContent
+                  : undefined,
               },
             },
           };
