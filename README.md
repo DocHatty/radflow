@@ -9,7 +9,7 @@
 <img width="3746" height="1821" alt="image" src="https://github.com/user-attachments/assets/e1dd7c42-974b-4810-8bc8-39027251ed49" />
 
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Personal%20%2F%20Research-orange.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![Powered by](https://img.shields.io/badge/powered%20by-Google%20Gemini%203-4285F4.svg)](https://deepmind.google/gemini/)
 
@@ -141,7 +141,7 @@ Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting pul
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is available for **personal use and research only**. Commercial use requires express written permission from the creator. See the [LICENSE](LICENSE) file for details.
 
 ---
 
