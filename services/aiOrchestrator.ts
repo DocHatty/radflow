@@ -100,6 +100,11 @@ const TASK_CONFIGS: Record<AiTaskType, TaskConfig> = {
     requestType: "normal",
     temperature: 0.3,
   },
+  rundownMostLikely: {
+    instructionKey: "RUNDOWN_MOST_LIKELY_INSTRUCTION",
+    requestType: "normal",
+    temperature: 0.3,
+  },
   rundownTopFacts: {
     instructionKey: "RUNDOWN_TOP_FACTS_INSTRUCTION",
     requestType: "normal",

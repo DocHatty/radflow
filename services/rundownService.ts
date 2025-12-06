@@ -11,6 +11,7 @@ export interface RundownSection {
 
 export interface RundownData {
   appropriateness: RundownSection;
+  mostLikely: RundownSection;
   topFacts: RundownSection;
   whatToLookFor: RundownSection;
   pitfalls: RundownSection;
@@ -27,6 +28,11 @@ const SECTION_CONFIG: Array<{
   title: string;
   task: AiTaskType;
 }> = [
+  {
+    key: "mostLikely",
+    title: "Most Likely Diagnoses",
+    task: "rundownMostLikely",
+  },
   { key: "topFacts", title: "Top Facts", task: "rundownTopFacts" },
   {
     key: "whatToLookFor",

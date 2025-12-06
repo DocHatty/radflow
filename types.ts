@@ -95,6 +95,7 @@ export type PromptKey =
   | "IMPRESSION_SYNTHESIZER_SYSTEM_INSTRUCTION"
   | "QUERY_SYSTEM_INSTRUCTION"
   | "GUIDELINE_SELECTION_SYSTEM_INSTRUCTION"
+  | "RUNDOWN_MOST_LIKELY_INSTRUCTION"
   | "RUNDOWN_TOP_FACTS_INSTRUCTION"
   | "RUNDOWN_WHAT_TO_LOOK_FOR_INSTRUCTION"
   | "RUNDOWN_PITFALLS_INSTRUCTION"
@@ -156,6 +157,7 @@ export type AiTaskType =
   | "selectGuidelines"
   | "generateImage" // Added for background generation
   | "rundownAppropriateness"
+  | "rundownMostLikely"
   | "rundownTopFacts"
   | "rundownWhatToLookFor"
   | "rundownPitfalls"

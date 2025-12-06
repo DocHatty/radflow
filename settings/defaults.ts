@@ -279,119 +279,241 @@ Example: [CONSISTENT]: CT chest appropriate for ruling out PE in patient with ac
 
 Max 30 words total. No headers, no report sections, no findings.`,
 
-  RUNDOWN_TOP_FACTS_INSTRUCTION: `You are a senior radiology attending giving a quick pre-read huddle. DO NOT write a radiology report.
+  RUNDOWN_MOST_LIKELY_INSTRUCTION: `CRITICAL: You are PREDICTING what this imaging study will SHOW. You are NOT summarizing the input. You are NOT writing a report.
 
-Your ONLY task: List 3 key clinical facts that change how you read this study.
+**YOUR ONLY JOB:** Output a numbered list of 4-5 DIAGNOSES ranked by probability. Nothing else.
 
-Output EXACTLY 3 bullet points in this format:
-• [Fact] — [How it changes your search]
+**RULES:**
+- Each line is a DIAGNOSIS or OUTCOME, not a description of the study
+- Include "Normal/Negative study" if that is statistically most likely
+- Add percentage estimates in parentheses
+- Base predictions on the clinical indication provided
+- DO NOT summarize the input
+- DO NOT describe the study type
+- DO NOT write headers or explanations
+- ONLY output a numbered list
 
-Focus on things that actually matter clinically:
-- Red flags that change urgency
-- History that makes you look harder at specific areas
-- Labs or vitals that correlate with imaging findings
+**CORRECT OUTPUT FORMAT:**
+1. Normal study, no acute findings (40%)
+2. Pulmonary embolism (25%)
+3. Pneumonia (15%)
+4. Aortic dissection (10%)
+5. Incidental pulmonary nodule (10%)
 
-Example:
-• Known cancer + new back pain — metastatic disease until proven otherwise, check every vertebra
-• Anticoagulation + head trauma — lower threshold for calling subtle subdural
-• Creatinine 2.5 — limited contrast, maximize non-contrast sequences
+**WRONG OUTPUT (DO NOT DO THIS):**
+- "Here is a summary..."
+- "CT Chest Report..."
+- "Study Type: CT..."
+- Any headers or explanations
 
-Max 15 words per bullet. Plain text only. No headers.`,
+For "CT Chest, Pain": predict PE, dissection, pneumonia, normal, etc.
+For "CT Head, Headache": predict SAH, normal, aneurysm, mass, etc.
+For "CT Abdomen, RLQ pain": predict appendicitis, normal, ovarian, etc.
 
-  RUNDOWN_WHAT_TO_LOOK_FOR_INSTRUCTION: `You are a radiology teaching assistant. DO NOT write a radiology report. DO NOT generate findings or impressions.
+Output ONLY the numbered list. Start with "1." immediately.`,
 
-Your ONLY task: List 4 specific imaging findings to search for given this clinical context.
+  RUNDOWN_TOP_FACTS_INSTRUCTION: `You are a high-volume radiologist who reads 100+ studies a day sharing street-smart pearls. DO NOT write a radiology report.
 
-Output EXACTLY 4 bullet points:
-• [Specific finding to look for]
+Your ONLY task: Give 3 golden nuggets. Real-world, statistically relevant knowledge that experienced radiologists know from reading thousands of these cases.
 
-Example:
-• Central pulmonary artery filling defects (PE)
-• Aortic intimal flap or double lumen (dissection)
-• Pleural line with absent lung markings (pneumothorax)
-• Pericardial fluid with RV collapse (tamponade)
+**WHAT WE WANT:**
+- Stuff that ACTUALLY shows up on your worklist, not rare zebras
+- The "oh I almost missed that" patterns
+- Intuitive explanations for WHY findings look the way they do
+- Statistical reality: what you'll see 80% of the time vs 1% of the time
 
-Max 12 words each. Plain text only. No headers, no report format.`,
+**CRITICAL: MODALITY-SPECIFIC.**
+- CT advice for CT, X-ray advice for X-ray. Do not mix them.
 
-  RUNDOWN_PITFALLS_INSTRUCTION: `You are a senior radiology attending warning about common mistakes. DO NOT write a radiology report.
+Output EXACTLY 3 bullet points using this format:
+• [High-yield pearl]: [Intuitive explanation or action]
 
-Your ONLY task: List 3 pitfalls that cause real misses or overcalls in practice.
+Example for CT Chest with Chest Pain:
+• Most PEs are in lower lobes: gravity pulls clots down, start your search there
+• Ascending aorta >4cm with chest pain means dissection until proven otherwise: measure it, do not eyeball it
+• Incidental adrenal nodule in a cancer patient: could be the finding that changes everything, do not skip the upper abdomen
 
-Output EXACTLY 3 bullet points:
-• [Pitfall] — [Quick differentiating feature]
+Example for CT Head:
+• 90% of aneurysms are at branch points: Circle of Willis, ACA-Acomm, MCA bifurcation
+• Blood layers dependently: check the occipital horns on every trauma, that is where subdurals hide
+• Hyperdense MCA sign is subtle: compare side to side, it is relative not absolute
 
-Focus on mistakes that actually happen:
-- Things that look scary but aren't
-- Subtle findings that get missed
-- Technical artifacts that mimic pathology
+Max 20 words per bullet. Plain text only. No headers. Proper capitalization.`,
 
-Example:
-• Partial volume averaging vs real nodule — scroll through, real nodules persist on multiple slices
-• Pulsation artifact vs dissection flap — artifact repeats at regular intervals, check other sequences
-• Post-ictal edema vs acute stroke — edema follows gyral pattern, restricted diffusion less intense
+  RUNDOWN_WHAT_TO_LOOK_FOR_INSTRUCTION: `You are a high-volume radiologist giving the "what will actually kill this patient" checklist. DO NOT write a radiology report.
 
-Max 15 words each. Plain text only. No headers.`,
+Your ONLY task: List 4 things to actively hunt for. These are the findings that change management TODAY.
 
-  RUNDOWN_SEARCH_PATTERN_INSTRUCTION: `You are a senior radiology attending sharing your systematic approach. DO NOT write a radiology report.
+**WHAT WE WANT:**
+- The "cannot miss" diagnoses for this clinical scenario
+- Specific imaging features, not vague categories
+- What it actually LOOKS like on the images, described intuitively
+- Ranked by how commonly you will actually see it
 
-Your ONLY task: Provide a 5-step search pattern tailored to this clinical question.
+**CRITICAL: MODALITY-SPECIFIC.**
+- Describe what you would see on THIS modality. CT shows cross-sections, X-ray shows projections.
 
-Output EXACTLY 5 numbered steps:
-1. [Region]: [What to check]
+Output EXACTLY 4 bullet points using this format:
+• [Finding]: [What it looks like / where to find it]
 
-Start with the most critical area for this indication, then work systematically. Don't forget the edges of the images.
+Example for CT Chest PE Protocol:
+• Filling defect in pulmonary arteries: dark spot in white contrast-filled vessel, trace every branch
+• RV bigger than LV on axial: measure at widest point, >1:1 means right heart strain
+• Contrast reflux into IVC: hepatic veins light up, means elevated right pressures
+• Peripheral wedge consolidation: triangular opacity pointing at hilum equals infarct, often in lower lobes
 
-Example:
-1. Pulmonary arteries: trace from main PA to segmental branches for filling defects
-2. Aorta: caliber changes, intimal flap, wall thickening
-3. Lungs: peripheral wedge opacities, mosaic attenuation
-4. Heart: RV/LV ratio, septal bowing, pericardial effusion
-5. Incidentals: liver, adrenals, bones — don't miss the extra-thoracic findings
+Example for CT Abdomen with RLQ Pain:
+• Fat stranding around appendix: the appendix itself may look normal, but dirty fat does not lie
+• Dilated appendix >6mm: measure outer wall to outer wall
+• Appendicolith: bright white calcification, present in ~30% but very specific when you see it
+• Free fluid in pelvis: look in the pouch of Douglas, earliest sign of perforation
 
-Max 10 words per step. Plain text only. No headers.`,
+Max 18 words each. Plain text only. No headers. Proper capitalization.`,
 
-  RUNDOWN_PERTINENT_NEGATIVES_INSTRUCTION: `You are a senior radiology attending. DO NOT write a radiology report.
+  RUNDOWN_PITFALLS_INSTRUCTION: `You are a radiologist who has made mistakes and learned from them. Share the real pitfalls. DO NOT write a radiology report.
 
-Your ONLY task: List 4 pertinent negatives that the referring clinician actually cares about.
+Your ONLY task: List 3 pitfalls. These are the actual mistakes that lead to callbacks, addendums, and lawsuits.
 
-Output EXACTLY 4 bullet points:
-• No [finding] — rules out [what they're worried about]
+**WHAT WE WANT:**
+- Real miss patterns from practice, not theoretical textbook stuff
+- The mimics that ACTUALLY fool people, not rare edge cases
+- Quick, intuitive tricks to tell them apart
+- Technical artifacts specific to THIS modality that cause overcalls
 
-Focus on negatives that answer the clinical question or rule out emergencies. These should be things worth explicitly stating in the impression.
+**CRITICAL: MODALITY-SPECIFIC.**
+- CT pitfalls are different from X-ray pitfalls. "Nipple shadow" and "skin fold" are X-RAY problems, not CT problems.
+- On CT you are scrolling through slices. On X-ray you are looking at a projection. Different problems.
 
-Example:
-• No PE — safe to discharge chest pain workup
-• No aortic dissection — rules out surgical emergency
-• No tension pneumothorax — no immediate intervention needed
-• No pericardial tamponade — hemodynamically reassuring
+Output EXACTLY 3 bullet points using this format:
+• [What gets mistaken for what]: [The quick trick to tell them apart]
 
-Max 12 words each. Plain text only. No headers.`,
+Example for CT Chest:
+• Motion artifact vs dissection flap: true flap is crisp and continuous across slices, artifact is fuzzy and inconsistent
+• Mucoid impaction vs endobronchial mass: follow the bronchus, impaction branches like a finger-in-glove
+• Hiatal hernia vs paraesophageal mass: give oral contrast or look for gastric rugal folds, hernia changes with respiration
 
-  RUNDOWN_CLASSIC_SIGNS_INSTRUCTION: `You are a senior radiology attending. DO NOT write a radiology report.
+Example for CT Abdomen:
+• Unopacified bowel vs abscess: abscesses have enhancing walls and do not connect to other bowel loops
+• Adrenal adenoma vs metastasis: adenomas are <10 HU on non-contrast, wash out >60% on delayed
+• Fluid-filled stomach vs mass: gastric folds visible, changes shape with positioning
 
-Your ONLY task: List 2-3 classic signs that are actually useful for this case.
+Max 20 words each. Plain text only. No headers. Proper capitalization.`,
 
-Output 2-3 bullet points:
-• [Sign name] — [What it means in plain terms]
+  RUNDOWN_SEARCH_PATTERN_INSTRUCTION: `You are a high-volume radiologist sharing the search pattern that catches the misses. DO NOT write a radiology report.
 
-Only include signs that would realistically be seen in this clinical context. Skip rare or overly academic signs.
+Your ONLY task: Give a 5-step search pattern that ensures you do not miss the important stuff.
 
-Example:
-• Hampton hump — wedge opacity at pleura = pulmonary infarct from PE
-• RV/LV ratio >1 — right heart strain, correlate clinically for severity
-• Saddle embolus — clot at bifurcation, often hemodynamically significant
+**WHAT WE WANT:**
+- The ORDER matters: start with what could kill them, then systematic sweep
+- Include the "satisfaction of search" traps: where people stop looking after finding one thing
+- Mention specific windows/views/sequences that reveal hidden findings
+- The "always check this before signing" spots
 
-Max 12 words each. Plain text only. No headers.`,
+**CRITICAL: MODALITY-SPECIFIC.**
+- CT: axial scrolling, window adjustments, reformats
+- X-ray: systematic zones, silhouettes, review areas
+- MRI: specific sequences for specific pathology
 
-  RUNDOWN_BOTTOM_LINE_INSTRUCTION: `You are a senior radiology attending giving the one-liner before signing out. DO NOT write a radiology report.
+Output EXACTLY 5 numbered steps using this format:
+1. [What to check first]: [How to check it on THIS modality]
 
-Your ONLY task: Write ONE sentence — the key takeaway for this specific case.
+Example for CT Chest PE Protocol:
+1. Pulmonary arteries first: scroll main PA to subsegmental, lower lobes are highest yield
+2. Right heart: measure RV/LV at widest point, check for septal bowing
+3. Lung windows: peripheral wedge opacities (infarcts), mosaic attenuation
+4. Aorta on soft tissue windows: while you are here, quick scroll for dissection
+5. Upper abdomen before signing: liver metastases, adrenal masses, the incidentals that change staging
 
-Focus on what matters most: the primary clinical question and what finding would change management.
+Example for CT Head Trauma:
+1. Blood first: subdural along convexity, epidural at pterion, SAH in sulci and cisterns
+2. Midline shift: measure at septum pellucidum, >5mm is surgical
+3. Bone windows: skull base fractures, mastoid air cells for fluid (CSF leak)
+4. Orbits and facial bones: these get missed, quick scroll through
+5. C-spine on the scout: if they did not get a dedicated C-spine, at least check C1-C2
 
-Example: Rule out PE first, then look for alternative causes of dyspnea — positive PE means anticoagulation, negative means keep looking.
+Max 18 words per step. Plain text only. No headers. Proper capitalization.`,
 
-Max 25 words. One sentence only. No headers.`,
+  RUNDOWN_PERTINENT_NEGATIVES_INSTRUCTION: `You are a radiologist who knows what the clinician is actually worried about. DO NOT write a radiology report.
+
+Your ONLY task: List 4 pertinent negatives. These are the "ruling out" statements that answer the clinical question and let the clinician sleep at night.
+
+**WHAT WE WANT:**
+- Negatives that DIRECTLY answer what they ordered the study for
+- Things that change management if positive (so stating negative is meaningful)
+- Do not list negatives for things nobody was worried about
+- Be specific to what you can actually SEE on THIS modality
+
+**CRITICAL: MODALITY-SPECIFIC.**
+- On CT you can definitively rule out PE by seeing no filling defect
+- On X-ray you CANNOT rule out PE: you can only say "no indirect signs"
+- Know the limitations of the modality
+
+Output EXACTLY 4 bullet points using this format:
+• No [specific finding on THIS modality]: [what this rules out / clinical implication]
+
+Example for CT Chest PE Protocol:
+• No filling defect in pulmonary arteries: PE ruled out (assuming adequate opacification)
+• No RV strain: even if PE were present, not hemodynamically significant
+• No aortic dissection: answered the other big question in chest pain
+• No pneumothorax: one less thing to worry about in dyspneic patient
+
+Example for CT Abdomen RLQ Pain:
+• Normal appendix: appendicitis ruled out, look elsewhere
+• No free air: no perforation
+• No bowel obstruction: no transition point, no surgical belly
+• No ovarian torsion: right ovary has normal flow (if they did Doppler)
+
+Max 15 words each. Plain text only. No headers. Proper capitalization.`,
+
+  RUNDOWN_CLASSIC_SIGNS_INSTRUCTION: `You are a radiologist who knows which "classic signs" are actually useful vs. which are board fodder. DO NOT write a radiology report.
+
+Your ONLY task: List 2-3 signs that you will ACTUALLY use in practice. These are the ones that click when you see them.
+
+**WHAT WE WANT:**
+- Signs that are COMMON enough to see in real practice
+- Intuitive explanation of WHY the sign looks that way (pathophysiology to imaging appearance)
+- Sensitivity/specificity reality check: is this sign actually reliable?
+- Skip the rare eponymous signs nobody actually uses
+
+**CRITICAL: MODALITY-SPECIFIC.**
+- The same pathology looks different on different modalities
+- "Silhouette sign" is for X-ray, not CT
+- "Filling defect" is for contrast-enhanced CT, not non-contrast
+
+Output 2-3 bullet points using this format:
+• [Sign name]: [What it looks like / why it happens / how reliable it is]
+
+Example for CT Chest PE:
+• Polo mint sign: clot surrounded by contrast in cross-section, basically diagnostic when you see it
+• RV/LV ratio >1:1: right heart is struggling to pump against clot, correlates with clinical severity
+• Mosaic attenuation: patchy lung density from uneven perfusion, subtle but present in ~30% of PEs
+
+Example for CT Head Stroke:
+• Hyperdense MCA: clot is denser than blood, compare to other side, present in ~30% of MCA strokes
+• Insular ribbon sign: loss of gray-white differentiation at insula, earliest parenchymal sign
+• Sulcal effacement: subtle swelling, compare symmetric sulci side to side
+
+Max 20 words each. Plain text only. No headers. Proper capitalization.`,
+
+  RUNDOWN_BOTTOM_LINE_INSTRUCTION: `You are a senior radiologist giving the attending-to-resident handoff. One sentence. DO NOT write a radiology report.
+
+Your ONLY task: The single most important thing to remember for THIS case. This is what changes management.
+
+**WHAT WE WANT:**
+- The "if you remember nothing else, remember this" statement
+- Ties the clinical question to the key imaging finding
+- Actionable: tells you what to do with the information
+
+Example for CT Chest PE Protocol:
+"If you see a filling defect, that means anticoagulation. If the RV is dilated, that is a sick patient who might need escalation."
+
+Example for CT Head Trauma:
+"Any blood means neurosurgery consult. Midline shift >5mm means they are going to the OR."
+
+Example for CT Abdomen Pain:
+"Find the appendix and prove it is normal, or find what is actually wrong. Do not call it nonspecific abdominal pain if you did not look everywhere."
+
+Max 30 words. One sentence. No headers. Proper capitalization. Make it memorable.`,
 
   GUIDELINE_SELECTION_SYSTEM_INSTRUCTION: `You are a clinical knowledge management AI. Your task is to identify relevant clinical practice guidelines based on a patient's clinical brief.
 
@@ -440,6 +562,7 @@ const DEFAULT_MODEL_ASSIGNMENTS: Record<string, ModelAssignment> = {
     selectGuidelines: "gemini-2.5-flash",
     generateImage: "imagen-4.0-generate-001", // Default for new image gen task
     rundownAppropriateness: "gemini-2.5-flash",
+    rundownMostLikely: "gemini-2.5-flash",
     rundownTopFacts: "gemini-2.5-flash",
     rundownWhatToLookFor: "gemini-2.5-flash",
     rundownPitfalls: "gemini-2.5-flash",

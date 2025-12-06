@@ -150,15 +150,17 @@ const ParticleBackground: React.FC = () => {
 // --- DYNAMIC BACKGROUND GENERATOR ---
 import { fetchModels } from "./services/modelFetcherService";
 
+const DEFAULT_BACKGROUND = "/default-background.png";
+
 const DynamicBackground: React.FC = () => {
   const BACKGROUND_STORAGE_KEY = "radflow-background-cache";
 
-  // Try to load cached background on mount
+  // Try to load cached background on mount, fall back to default
   const [bgUrl, setBgUrl] = useState<string | null>(() => {
     try {
-      return localStorage.getItem(BACKGROUND_STORAGE_KEY);
+      return localStorage.getItem(BACKGROUND_STORAGE_KEY) || DEFAULT_BACKGROUND;
     } catch {
-      return null;
+      return DEFAULT_BACKGROUND;
     }
   });
   const [animationDuration, setAnimationDuration] = useState("60s");
