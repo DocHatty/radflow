@@ -48,8 +48,9 @@ export function detectCriticalFindings(text: string): CriticalFinding[] {
   const findings: CriticalFinding[] = [];
   
   for (const { pattern, type, severity } of CRITICAL_PATTERNS) {
-    const match = text.match(pattern);
-    if (match) {
+    // Use matchAll to find all instances
+    const matches = Array.from(text.matchAll(new RegExp(pattern, 'gi')));
+    for (const match of matches) {
       findings.push({
         type,
         severity,
@@ -59,8 +60,16 @@ export function detectCriticalFindings(text: string): CriticalFinding[] {
     }
   }
   
-  // Sort by position in text
-  return findings.sort((a, b) => a.position - b.position);
+  // Sort by position in text and remove duplicates
+  const seen = new Set<string>();
+  return findings
+    .sort((a, b) => a.position - b.position)
+    .filter(f => {
+      const key = `${f.type}-${f.position}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 export function hasCriticalFindings(text: string): boolean {

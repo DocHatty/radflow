@@ -25,7 +25,7 @@ const QUALITY_INDICATORS = [
   { name: "Specific measurements", pattern: /\d+\.?\d*\s*(mm|cm|x)/i, weight: 5 },
   { name: "Anatomical details", pattern: /\b(right|left|upper|lower|anterior|posterior|medial|lateral)\b/i, weight: 5 },
   { name: "Descriptive terms", pattern: /\b(normal|abnormal|mild|moderate|severe|stable|increased|decreased)\b/i, weight: 5 },
-  { name: "Follow-up recommendation", pattern: /\b(follow.?up|recommend|suggest|correlat)/i, weight: 7 },
+  { name: "Follow-up recommendation", pattern: /\b(follow.?up|recommend|suggest|correlate)/i, weight: 7 },
 ];
 
 export function calculateCompletionMetrics(reportText: string): CompletionMetrics {

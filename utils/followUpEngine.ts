@@ -80,8 +80,9 @@ const FINDING_PATTERNS: FindingPattern[] = [
       const contextText = fullText.substring(Math.max(0, match.index! - 100), match.index! + 200);
       
       // Check for Bosniak classification
-      if (/bosniak\s+(i{1,2}f|iii|iv|1|2|3|4)/i.test(contextText)) {
-        const bosniakMatch = contextText.match(/bosniak\s+(i{1,2}f|iii|iv|1|2|3|4)/i);
+      const bosniakRegex = /bosniak\s+(i{1,2}f|iii|iv|1|2|3|4)/i;
+      if (bosniakRegex.test(contextText)) {
+        const bosniakMatch = contextText.match(bosniakRegex);
         const classification = bosniakMatch![1].toUpperCase();
         
         if (classification.includes("I") && !classification.includes("F")) {

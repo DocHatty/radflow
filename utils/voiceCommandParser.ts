@@ -160,9 +160,10 @@ export function getTemplateForStudyType(studyType: string): string {
     return NORMAL_EXAM_TEMPLATES[normalizedType];
   }
   
-  // Check for partial matches
+  // Check for word boundary matches to avoid partial word matches
   for (const [key, template] of Object.entries(NORMAL_EXAM_TEMPLATES)) {
-    if (normalizedType.includes(key) || key.includes(normalizedType)) {
+    const keyRegex = new RegExp(`\\b${key}\\b`, 'i');
+    if (keyRegex.test(normalizedType)) {
       return template;
     }
   }
