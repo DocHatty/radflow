@@ -11,7 +11,7 @@
 
 [![License](https://img.shields.io/badge/license-Personal%20%2F%20Research-orange.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
-[![Powered by](https://img.shields.io/badge/powered%20by-Google%20Gemini%201.5%2F2.0-4285F4.svg)](https://deepmind.google/gemini/)
+[![Powered by](https://img.shields.io/badge/powered%20by-Multiple%20AI%20Providers-4285F4.svg)](https://github.com/DocHatty/radflow)
 
 </div>
 
@@ -21,7 +21,7 @@
 
 **RADFLOW** is the AI-powered cognitive co-pilot for elite radiologists who refuse to compromise on precision, speed, or excellence.
 
-Built on **Google Gemini's** most advanced multi-modal architecture (supporting Gemini 1.5 Pro/Flash and Gemini 2.0 Flash), RADFLOW deploys a **sophisticated multi-agent AI system** that works in parallel to provide:
+Built on **flexible multi-provider AI architecture** (supporting Google Gemini, OpenAI, Anthropic Claude, OpenRouter, Perplexity, and more), RADFLOW deploys a **sophisticated multi-agent AI system** that works in parallel to provide:
 - **Real-time clinical intelligence** across 8 simultaneous guidance streams
 - **Adaptive differential diagnosis** that evolves with your findings
 - **Context-aware orchestration** routing each cognitive task to specialized AI models
@@ -63,13 +63,26 @@ A comprehensive AI-powered review system ensures excellence:
 Every report, clinically sound and eloquently presented.
 
 ### **🎨 Digital Impressionism**
-A revolutionary ambient workspace powered by **Imagen** (dynamically selects the best available version—3.0, 4.0, or newer). Each session generates unique, AI-created medical concept art in the style of master impressionists—dynamic visualizations of neurological landscapes, cardiovascular systems, and cellular structures. Beautiful enough to inspire, subtle enough to prevent distraction during marathon reading sessions.
+A revolutionary ambient workspace powered by **Imagen** (when using Google Gemini provider, dynamically selects the best available version—3.0, 4.0, or newer). Each session generates unique, AI-created medical concept art in the style of master impressionists—dynamic visualizations of neurological landscapes, cardiovascular systems, and cellular structures. Beautiful enough to inspire, subtle enough to prevent distraction during marathon reading sessions.
+
+*Note: Image generation requires a Google Gemini provider with Imagen model support.*
 
 ---
 
 ## 🧬 The AI Architecture
 
 RADFLOW represents a paradigm shift in how AI assists radiological interpretation. Unlike simple chatbots, RADFLOW implements a **multi-agent orchestration system** with specialized intelligence at every stage:
+
+### Multi-Provider Support
+RADFLOW supports multiple AI providers, giving you the flexibility to choose the best model for each task:
+- **Google Gemini** - Advanced multi-modal models with grounding capabilities and Imagen for background generation
+- **OpenAI** - GPT-4 and other models for high-quality text generation
+- **Anthropic Claude** - Claude 3 models with extended context windows
+- **OpenRouter** - Access to multiple models through a unified API
+- **Perplexity** - Specialized models with built-in search capabilities
+- **Custom Providers** - Configure custom base URLs for self-hosted or proxy endpoints
+
+Each provider can be configured with its own model assignments, allowing you to optimize for cost, speed, or quality on a per-task basis.
 
 ### Parallel Processing Pipeline
 When you input a case, RADFLOW's **Real-World Rundown** launches **8 independent AI tasks** that process simultaneously (plus a separate appropriateness evaluation):
@@ -81,8 +94,8 @@ When you input a case, RADFLOW's **Real-World Rundown** launches **8 independent
 The **AI Orchestrator** analyzes each request and routes it to the optimal model:
 - **JSON-structured tasks** (categorization, differentials) → High-precision schema-validated models
 - **Streaming tasks** (report drafting, impression synthesis) → Models optimized for natural language generation
-- **Grounding-enabled tasks** (appropriateness evaluation) → Models with web search capabilities when local knowledge is insufficient
-- **Image generation** (ambient backgrounds) → Imagen (auto-selects best available version: 3.0, 4.0, or newer) with carefully crafted impressionist prompts
+- **Grounding-enabled tasks** (appropriateness evaluation) → Models with web search capabilities when local knowledge is insufficient (currently Google Gemini only)
+- **Image generation** (ambient backgrounds) → Imagen models (Google Gemini only) with carefully crafted impressionist prompts
 
 ### Context-Aware Intelligence
 Unlike isolated AI calls, RADFLOW maintains **semantic context** across the entire workflow:
@@ -111,10 +124,15 @@ This is **AI that thinks alongside you**, not just responds to prompts.
 Before experiencing RADFLOW, ensure you have:
 
 - **Node.js** (v18 or higher) — [Download](https://nodejs.org/)
-- **Google Gemini API Key** — [Get Your Key](https://ai.google.dev/)
+- **AI Provider API Key** — At least one of:
+  - [Google Gemini API Key](https://ai.google.dev/) (Default, recommended for full feature support)
+  - [OpenAI API Key](https://platform.openai.com/api-keys)
+  - [Anthropic API Key](https://console.anthropic.com/)
+  - [OpenRouter API Key](https://openrouter.ai/keys)
+  - [Perplexity API Key](https://www.perplexity.ai/settings/api)
 
 > **⚡ Power Requires Fuel**  
-> RADFLOW's intelligence and Digital Impressionism engine are powered by the Google Gemini API. Without a valid API key, functionality will be limited to basic features.
+> RADFLOW's intelligence requires API access to AI models. Google Gemini is recommended as the default provider for full feature support including grounding and image generation. Other providers can be added and configured in Settings.
 
 ---
 
@@ -135,10 +153,19 @@ npm install
 
 **Option A:** Create a `.env.local` file in the root directory:
 ```env
-GEMINI_API_KEY=your_actual_api_key_here
+# Google Gemini (Default - Recommended for full features)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Or use environment variable API_KEY for any provider
+API_KEY=your_api_key_here
 ```
 
 **Option B:** Enter your API key directly in the application's Settings panel after launch.
+
+**Option C:** Add multiple providers in the Settings panel for flexibility:
+- Configure different providers for different tasks
+- Switch between providers based on your needs
+- Use custom base URLs for proxies or self-hosted endpoints
 
 #### **4. Launch RADFLOW**
 ```bash
@@ -184,7 +211,7 @@ RADFLOW's **AI Orchestrator** intelligently routes each task to specialized mode
 <tr>
 <td align="center"><b>💬 Interactive</b><br/>Chat with AI about complex cases, get second opinions on demand</td>
 <td align="center"><b>🔄 Adaptive</b><br/>Differentials auto-refine as findings evolve—your AI thinks with you</td>
-<td align="center"><b>🚀 Modern</b><br/>Built on Google Gemini's most advanced multi-modal architecture</td>
+<td align="center"><b>🚀 Modern</b><br/>Multi-provider support: Google, OpenAI, Anthropic, OpenRouter, Perplexity</td>
 </tr>
 </table>
 
@@ -227,7 +254,7 @@ If RADFLOW enhances your practice, consider:
 
 **Engineered for radiologists who demand excellence.**
 
-Made with precision and purpose | Powered by Google Gemini 1.5/2.0 + Imagen
+Made with precision and purpose | Powered by Multiple AI Providers
 
 [Report Bug](mailto:DoctorHatkoff14@gmail.com) · [Request Feature](mailto:DoctorHatkoff14@gmail.com)
 

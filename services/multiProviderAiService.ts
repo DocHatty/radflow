@@ -139,12 +139,33 @@ const runGoogleImageRequest = async (payload: AiRequestPayload) => {
   return `data:image/jpeg;base64,${base64Image}`;
 };
 
-// --- Generic Fetch-based Implementation for OpenAI, Anthropic, OpenRouter ---
+// --- Generic Fetch-based Implementation for OpenAI, Anthropic, OpenRouter, Perplexity ---
 const runFetchStreamRequest = async (
   payload: AiRequestPayload,
 ): Promise<string> => {
   const { provider, model, systemInstruction, prompt, onChunk } = payload;
-  let endpoint = provider.baseUrl || "";
+  
+  // Set default base URLs if not provided
+  let endpoint = provider.baseUrl;
+  if (!endpoint) {
+    switch (provider.providerId) {
+      case "openai":
+        endpoint = "https://api.openai.com/v1";
+        break;
+      case "anthropic":
+        endpoint = "https://api.anthropic.com/v1";
+        break;
+      case "openrouter":
+        endpoint = "https://openrouter.ai/api/v1";
+        break;
+      case "perplexity":
+        endpoint = "https://api.perplexity.ai";
+        break;
+      default:
+        endpoint = "";
+    }
+  }
+  
   if (provider.providerId !== "anthropic") {
     endpoint += "/chat/completions";
   } else {
@@ -171,7 +192,7 @@ const runFetchStreamRequest = async (
       body.temperature = payload.temperature;
     }
   } else {
-    // OpenAI and OpenRouter
+    // OpenAI, OpenRouter, and Perplexity (all use OpenAI-compatible format)
     if (provider.providerId === "openrouter") {
       headers["HTTP-Referer"] = "https://localhost:3000"; // Example, required by OpenRouter
       headers["X-Title"] = "RadFlow";

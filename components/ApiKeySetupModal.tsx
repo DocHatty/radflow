@@ -56,7 +56,7 @@ const ApiKeySetupModal: React.FC<ApiKeySetupModalProps> = ({ onComplete }) => {
               Welcome to RadFlow
             </h2>
             <p className="text-sm text-slate-400">
-              To get started, please enter your Google Gemini API key
+              To get started, please enter your AI provider API key
             </p>
           </div>
 
@@ -65,22 +65,28 @@ const ApiKeySetupModal: React.FC<ApiKeySetupModalProps> = ({ onComplete }) => {
             <p className="text-xs text-blue-200 font-semibold">
               How to get your API key:
             </p>
-            <ol className="text-xs text-slate-300 space-y-1 list-decimal list-inside">
-              <li>
-                Visit{" "}
-                <a
-                  href="https://aistudio.google.com/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-cyan-400 hover:underline"
-                >
-                  Google AI Studio
-                </a>
-              </li>
-              <li>Sign in with your Google account</li>
-              <li>Click "Get API Key" or "Create API Key"</li>
-              <li>Copy the key and paste it below</li>
-            </ol>
+            <div className="text-xs text-slate-300 space-y-2">
+              <p className="font-semibold">Google Gemini (Default):</p>
+              <ol className="list-decimal list-inside space-y-1 ml-2">
+                <li>
+                  Visit{" "}
+                  <a
+                    href="https://aistudio.google.com/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyan-400 hover:underline"
+                  >
+                    Google AI Studio
+                  </a>
+                </li>
+                <li>Sign in with your Google account</li>
+                <li>Click "Get API Key" or "Create API Key"</li>
+                <li>Copy the key and paste it below</li>
+              </ol>
+              <p className="text-xs text-slate-400 mt-2">
+                You can add other providers (OpenAI, Anthropic, OpenRouter, Perplexity) later in Settings.
+              </p>
+            </div>
           </div>
 
           {/* Input Field */}
