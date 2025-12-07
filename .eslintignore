@@ -1,0 +1,9 @@
+node_modules
+dist
+dist-ssr
+build
+coverage
+*.config.ts
+*.config.js
+.eslintrc.json
+vite-env.d.ts

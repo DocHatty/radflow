@@ -18,6 +18,27 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'react-vendor': ['react', 'react-dom'],
+              'ui-vendor': ['framer-motion', 'lucide-react'],
+              'ai-services': [
+                './services/multiProviderAiService.ts',
+                './services/geminiService.ts',
+                './services/aiOrchestrator.ts'
+              ],
+              'utils': [
+                './utils/followUpEngine.ts',
+                './utils/guidanceUtils.ts',
+                './utils/criticalFindingsDetector.ts'
+              ]
+            }
+          }
+        },
+        chunkSizeWarningLimit: 600
       }
     };
 });

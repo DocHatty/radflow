@@ -9,9 +9,12 @@
 <img width="3746" height="1821" alt="image" src="https://github.com/user-attachments/assets/e1dd7c42-974b-4810-8bc8-39027251ed49" />
 
 
+[![CI/CD](https://github.com/DocHatty/radflow/actions/workflows/ci.yml/badge.svg)](https://github.com/DocHatty/radflow/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Personal%20%2F%20Research-orange.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![Powered by](https://img.shields.io/badge/powered%20by-Multiple%20AI%20Providers-4285F4.svg)](https://github.com/DocHatty/radflow)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
+[![Code Style](https://img.shields.io/badge/code%20style-prettier-ff69b4.svg)](https://prettier.io/)
 
 </div>
 

@@ -53,3 +53,6 @@ settings.local.json
 # Testing
 coverage/
 .nyc_output/
+
+# Husky
+.husky/_

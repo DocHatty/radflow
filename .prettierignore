@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+*.local
+build
+coverage
+.env
+.env.local
+.env.*.local
+package-lock.json
