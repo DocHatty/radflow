@@ -63,7 +63,7 @@ A comprehensive AI-powered review system ensures excellence:
 Every report, clinically sound and eloquently presented.
 
 ### **🎨 Digital Impressionism**
-A revolutionary ambient workspace powered by **Imagen 3/4** (automatically selects the best available model). Each session generates unique, AI-created medical concept art in the style of master impressionists—dynamic visualizations of neurological landscapes, cardiovascular systems, and cellular structures. Beautiful enough to inspire, subtle enough to prevent distraction during marathon reading sessions.
+A revolutionary ambient workspace powered by **Imagen** (dynamically selects the best available version—3.0, 4.0, or newer). Each session generates unique, AI-created medical concept art in the style of master impressionists—dynamic visualizations of neurological landscapes, cardiovascular systems, and cellular structures. Beautiful enough to inspire, subtle enough to prevent distraction during marathon reading sessions.
 
 ---
 
@@ -82,7 +82,7 @@ The **AI Orchestrator** analyzes each request and routes it to the optimal model
 - **JSON-structured tasks** (categorization, differentials) → High-precision schema-validated models
 - **Streaming tasks** (report drafting, impression synthesis) → Models optimized for natural language generation
 - **Grounding-enabled tasks** (appropriateness evaluation) → Models with web search capabilities when local knowledge is insufficient
-- **Image generation** (ambient backgrounds) → Imagen 3.0+ with carefully crafted impressionist prompts (auto-selects best available model)
+- **Image generation** (ambient backgrounds) → Imagen (auto-selects best available version: 3.0, 4.0, or newer) with carefully crafted impressionist prompts
 
 ### Context-Aware Intelligence
 Unlike isolated AI calls, RADFLOW maintains **semantic context** across the entire workflow:
@@ -227,7 +227,7 @@ If RADFLOW enhances your practice, consider:
 
 **Engineered for radiologists who demand excellence.**
 
-Made with precision and purpose | Powered by Google Gemini 1.5/2.0 + Imagen 3/4
+Made with precision and purpose | Powered by Google Gemini 1.5/2.0 + Imagen
 
 [Report Bug](mailto:DoctorHatkoff14@gmail.com) · [Request Feature](mailto:DoctorHatkoff14@gmail.com)
 
