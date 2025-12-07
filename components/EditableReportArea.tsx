@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState } from "react";
-import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+import React, { useRef, useEffect, useState, useMemo } from "react";
+import { useSpeechCommands } from "../hooks/useSpeechCommands";
 import Panel from "./Panel";
 import ActionButton from "./ActionButton";
 import SecondaryButton from "./SecondaryButton";
@@ -15,6 +15,12 @@ import { useWorkflowStore } from '../App';
 import { applySyntaxHighlighting } from "../utils/syntaxHighlighter";
 import { saveCaretPosition, restoreCaretPosition } from "../utils/caretUtils";
 import { htmlToText, textToHtml } from "../utils/textUtils";
+import CriticalFindingsAlert from "./CriticalFindingsAlert";
+import { detectCriticalFindings } from "../utils/criticalFindingsDetector";
+import ReportCompletionEstimator from "./ReportCompletionEstimator";
+import { getTemplateForStudyType } from "../utils/voiceCommandParser";
+import VoiceCommandsHelp from "./VoiceCommandsHelp";
+import FollowUpRecommendations from "./FollowUpRecommendations";
 
 const ReportToolbar: React.FC<{
   isAnyLoading: boolean;
@@ -88,7 +94,9 @@ const EditableReportArea: React.FC = () => {
     startListening,
     stopListening,
     resetTranscript,
-  } = useSpeechRecognition();
+    lastCommand,
+    clearLastCommand,
+  } = useSpeechCommands();
 
   const {
     rawContent,
@@ -106,6 +114,11 @@ const EditableReportArea: React.FC = () => {
     onFinalReview: state.fetchFinalReview,
   }));
 
+  // Detect critical findings in the report
+  const criticalFindings = useMemo(() => {
+    return detectCriticalFindings(rawContent + " " + dictationInput);
+  }, [rawContent, dictationInput]);
+
   const isLoading = activeProcess === "generating";
   const isRefining = activeProcess === "refining";
   const isIntegrating = activeProcess === "integrating";
@@ -117,6 +130,32 @@ const EditableReportArea: React.FC = () => {
     isIntegrating ||
     isFinalReviewActive ||
     isApplyingChanges;
+
+  // Handle voice commands
+  useEffect(() => {
+    if (lastCommand) {
+      switch (lastCommand.type) {
+        case "insert_template":
+        case "normal_exam":
+          if (lastCommand.parameter) {
+            const template = getTemplateForStudyType(lastCommand.parameter);
+            onContentChange(template);
+          }
+          break;
+        case "new_paragraph":
+          setDictationInput((prev) => prev + "\n\n");
+          break;
+        case "clear_text":
+          setDictationInput("");
+          break;
+        case "undo":
+          // Could implement undo history here
+          break;
+      }
+      clearLastCommand();
+      resetTranscript();
+    }
+  }, [lastCommand, clearLastCommand, resetTranscript, onContentChange]);
 
   // Synchronize editor display
   useEffect(() => {
@@ -134,12 +173,13 @@ const EditableReportArea: React.FC = () => {
   }, [rawContent]);
 
   // Handle Speech Transcript - Append to Dictation Box instead of auto-integrating
+  // Skip adding to dictation if it was a voice command
   useEffect(() => {
-    if (finalTranscript) {
+    if (finalTranscript && !lastCommand) {
       setDictationInput((prev) => prev + (prev ? " " : "") + finalTranscript);
       resetTranscript();
     }
-  }, [finalTranscript, resetTranscript]);
+  }, [finalTranscript, resetTranscript, lastCommand]);
 
   const handleCopy = () => {
     if (divRef.current?.innerText) {
@@ -196,6 +236,15 @@ const EditableReportArea: React.FC = () => {
       className="h-full flex flex-col"
       bodyClassName="p-0 flex-1 flex flex-col min-h-0" // Ensure flex layout for body
     >
+      {/* Report Completion Estimator, Follow-up Recommendations & Critical Findings Alert */}
+      <div className="p-4 pb-0 space-y-3">
+        <ReportCompletionEstimator reportContent={rawContent} />
+        <FollowUpRecommendations reportContent={rawContent} />
+        {criticalFindings.length > 0 && (
+          <CriticalFindingsAlert findings={criticalFindings} />
+        )}
+      </div>
+
       {/* Main Editor Area */}
       <div className="relative flex-1 min-h-0 overflow-hidden">
         {(isLoading || isRefining) && !rawContent && (
@@ -232,9 +281,12 @@ const EditableReportArea: React.FC = () => {
       <div className="p-4 border-t border-white/10 bg-slate-900/40 backdrop-blur-md">
         <div className="flex flex-col space-y-3">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-indigo-300/80 uppercase tracking-widest">
-              Dictation & Instructions
-            </label>
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-medium text-indigo-300/80 uppercase tracking-widest">
+                Dictation & Instructions
+              </label>
+              <VoiceCommandsHelp />
+            </div>
             {isListening && (
               <div className="flex items-center space-x-2 text-xs text-red-400 animate-pulse bg-red-500/10 px-2 py-1 rounded-full border border-red-500/20">
                 <MicIcon isListening={true} className="h-3 w-3" />
