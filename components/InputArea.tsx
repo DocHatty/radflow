@@ -35,10 +35,10 @@ const InputArea: React.FC<InputAreaProps> = ({ isDisabled, buttonText, placehold
 
   useEffect(() => {
     if (finalTranscript) {
-      setUserInput((prevInput) => (prevInput.trim() ? prevInput.trim() + ' ' : '') + finalTranscript);
+      setUserInput((userInput.trim() ? userInput.trim() + ' ' : '') + finalTranscript);
       resetTranscript();
     }
-  }, [finalTranscript, setUserInput, resetTranscript]);
+  }, [finalTranscript, userInput, setUserInput, resetTranscript]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
