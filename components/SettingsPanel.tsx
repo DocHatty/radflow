@@ -138,65 +138,298 @@ const PasswordInput: React.FC<{
   );
 };
 
-const ApiKeyManager: React.FC = () => {
-  const { settings, updateProvider } = useWorkflowStore((state) => ({
+const ProvidersTab: React.FC = () => {
+  const { settings, addProvider, updateProvider, removeProvider, setActiveProviderId } = useWorkflowStore((state) => ({
     settings: state.settings!,
+    addProvider: state.addProvider,
     updateProvider: state.updateProvider,
+    removeProvider: state.removeProvider,
+    setActiveProviderId: state.setActiveProviderId,
   }));
 
-  const googleProvider = settings.providers.find(
-    (p) => p.id === "default-google",
-  );
+  const [showAddProvider, setShowAddProvider] = useState(false);
+  const [newProvider, setNewProvider] = useState<{
+    providerId: ProviderId;
+    name: string;
+    apiKey: string;
+    baseUrl: string;
+  }>({
+    providerId: "openai",
+    name: "",
+    apiKey: "",
+    baseUrl: "",
+  });
 
-  if (!googleProvider) return null;
+  const providerInfo: Record<ProviderId, { name: string; url: string; defaultBaseUrl?: string }> = {
+    google: { name: "Google Gemini", url: "https://aistudio.google.com/apikey" },
+    openai: { name: "OpenAI", url: "https://platform.openai.com/api-keys", defaultBaseUrl: "https://api.openai.com/v1" },
+    anthropic: { name: "Anthropic Claude", url: "https://console.anthropic.com/", defaultBaseUrl: "https://api.anthropic.com/v1" },
+    openrouter: { name: "OpenRouter", url: "https://openrouter.ai/keys", defaultBaseUrl: "https://openrouter.ai/api/v1" },
+    perplexity: { name: "Perplexity", url: "https://www.perplexity.ai/settings/api", defaultBaseUrl: "https://api.perplexity.ai" },
+  };
+
+  const handleAddProvider = () => {
+    if (!newProvider.apiKey.trim()) {
+      alert("Please enter an API key");
+      return;
+    }
+    
+    const providerName = newProvider.name.trim() || providerInfo[newProvider.providerId].name;
+    
+    addProvider({
+      providerId: newProvider.providerId,
+      name: providerName,
+      apiKey: newProvider.apiKey.trim(),
+      baseUrl: newProvider.baseUrl.trim() || providerInfo[newProvider.providerId].defaultBaseUrl || "",
+    });
+    
+    setShowAddProvider(false);
+    setNewProvider({
+      providerId: "openai",
+      name: "",
+      apiKey: "",
+      baseUrl: "",
+    });
+  };
 
   return (
     <div className="space-y-4">
       <div className="p-3 bg-(--color-warning-bg)/80 border border-(--color-warning-border) text-xs text-(--color-warning-text) rounded-md flex">
         <InfoIcon className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
         <span>
-          Your API key is stored securely in your browser's local storage and
-          never sent to any server except Google's API.
+          Your API keys are stored securely in your browser's local storage and
+          only sent to the respective provider's API.
         </span>
       </div>
 
-      <div className="p-4 border border-(--color-border) rounded-lg bg-(--color-panel-bg)/50 space-y-4">
-        <div>
-          <h4 className="font-semibold text-white mb-1">Google Gemini API</h4>
-          <p className="text-xs text-(--color-text-muted)">
-            Manage your Google Gemini API key
-          </p>
-        </div>
+      {/* Existing Providers */}
+      <div className="space-y-3">
+        {settings.providers.map((provider) => {
+          const info = providerInfo[provider.providerId];
+          const isDefault = provider.id === "default-google";
+          const isActive = provider.id === settings.activeProviderId;
 
-        <div>
-          <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
-            API Key
-          </label>
-          <PasswordInput
-            value={googleProvider.apiKey}
-            onChange={(e) =>
-              updateProvider({ ...googleProvider, apiKey: e.target.value })
-            }
-          />
-        </div>
-
-        <div className="bg-blue-500/10 border border-blue-500/30 rounded-md p-3 space-y-2">
-          <p className="text-xs text-blue-200 font-semibold">
-            Need an API key?
-          </p>
-          <p className="text-xs text-slate-300">
-            Visit{" "}
-            <a
-              href="https://aistudio.google.com/apikey"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-cyan-400 hover:underline"
+          return (
+            <div
+              key={provider.id}
+              className={`p-4 border rounded-lg bg-(--color-panel-bg)/50 space-y-3 ${
+                isActive ? "border-(--color-primary)" : "border-(--color-border)"
+              }`}
             >
-              Google AI Studio
-            </a>{" "}
-            to create or manage your API keys.
-          </p>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-semibold text-white">{provider.name}</h4>
+                    {isActive && (
+                      <span className="px-2 py-0.5 text-xs bg-(--color-primary)/20 text-(--color-primary) rounded">
+                        Active
+                      </span>
+                    )}
+                    {isDefault && (
+                      <span className="px-2 py-0.5 text-xs bg-blue-500/20 text-blue-300 rounded">
+                        Default
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-(--color-text-muted)">
+                    {info.name} Provider
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {!isActive && (
+                    <button
+                      onClick={() => setActiveProviderId(provider.id)}
+                      className="px-3 py-1 text-xs bg-(--color-primary)/10 text-(--color-primary) hover:bg-(--color-primary)/20 rounded"
+                    >
+                      Set Active
+                    </button>
+                  )}
+                  {!isDefault && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Remove provider "${provider.name}"?`)) {
+                          removeProvider(provider.id);
+                        }
+                      }}
+                      className="p-1 text-(--color-danger-text) hover:bg-(--color-danger-bg)/20 rounded"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+                  API Key
+                </label>
+                <PasswordInput
+                  value={provider.apiKey}
+                  onChange={(e) =>
+                    updateProvider({ ...provider, apiKey: e.target.value })
+                  }
+                />
+              </div>
+
+              {provider.baseUrl && (
+                <div>
+                  <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+                    Base URL (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={provider.baseUrl}
+                    onChange={(e) =>
+                      updateProvider({ ...provider, baseUrl: e.target.value })
+                    }
+                    className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) font-mono focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
+                    placeholder={info.defaultBaseUrl}
+                  />
+                </div>
+              )}
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-md p-3">
+                <p className="text-xs text-slate-300">
+                  Get API key:{" "}
+                  <a
+                    href={info.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyan-400 hover:underline"
+                  >
+                    {info.url}
+                  </a>
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Add Provider Button/Form */}
+      {!showAddProvider ? (
+        <button
+          onClick={() => setShowAddProvider(true)}
+          className="w-full p-4 border border-dashed border-(--color-border) rounded-lg text-(--color-text-muted) hover:border-(--color-primary) hover:text-(--color-primary) hover:bg-(--color-primary)/5 transition-colors"
+        >
+          + Add Another Provider
+        </button>
+      ) : (
+        <div className="p-4 border border-(--color-primary) rounded-lg bg-(--color-panel-bg)/50 space-y-4">
+          <h4 className="font-semibold text-white">Add New Provider</h4>
+
+          <div>
+            <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+              Provider Type
+            </label>
+            <select
+              value={newProvider.providerId}
+              onChange={(e) =>
+                setNewProvider({
+                  ...newProvider,
+                  providerId: e.target.value as ProviderId,
+                  name: "",
+                  baseUrl: providerInfo[e.target.value as ProviderId].defaultBaseUrl || "",
+                })
+              }
+              className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
+            >
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic Claude</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="perplexity">Perplexity</option>
+              <option value="google">Google Gemini (Additional)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+              Name (Optional)
+            </label>
+            <input
+              type="text"
+              value={newProvider.name}
+              onChange={(e) => setNewProvider({ ...newProvider, name: e.target.value })}
+              className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
+              placeholder={`My ${providerInfo[newProvider.providerId].name}`}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+              API Key *
+            </label>
+            <PasswordInput
+              value={newProvider.apiKey}
+              onChange={(e) => setNewProvider({ ...newProvider, apiKey: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+              Base URL (Optional)
+            </label>
+            <input
+              type="text"
+              value={newProvider.baseUrl}
+              onChange={(e) => setNewProvider({ ...newProvider, baseUrl: e.target.value })}
+              className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) font-mono focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
+              placeholder={providerInfo[newProvider.providerId].defaultBaseUrl || "https://..."}
+            />
+            <p className="text-xs text-(--color-text-muted) mt-1">
+              Leave empty to use default. Useful for proxies or self-hosted endpoints.
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleAddProvider}
+              className="flex-1 px-4 py-2 bg-(--color-primary) text-white rounded-md hover:bg-(--color-primary)/80 font-semibold"
+            >
+              Add Provider
+            </button>
+            <button
+              onClick={() => {
+                setShowAddProvider(false);
+                setNewProvider({
+                  providerId: "openai",
+                  name: "",
+                  apiKey: "",
+                  baseUrl: "",
+                });
+              }}
+              className="flex-1 px-4 py-2 bg-(--color-interactive-bg) text-(--color-text-default) rounded-md hover:bg-(--color-interactive-bg-hover) font-semibold"
+            >
+              Cancel
+            </button>
+          </div>
+
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-md p-3">
+            <p className="text-xs text-slate-300">
+              Get API key:{" "}
+              <a
+                href={providerInfo[newProvider.providerId].url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-cyan-400 hover:underline"
+              >
+                {providerInfo[newProvider.providerId].url}
+              </a>
+            </p>
+          </div>
         </div>
+      )}
+
+      {/* Provider-Specific Features Note */}
+      <div className="p-3 bg-(--color-info-bg)/80 border border-(--color-info-border) rounded-md">
+        <p className="text-xs text-(--color-info-text) font-semibold mb-1">
+          Provider-Specific Features:
+        </p>
+        <ul className="text-xs text-(--color-info-text) space-y-1 ml-4 list-disc">
+          <li>Grounding (web search): Google Gemini only</li>
+          <li>Image generation: Google Gemini with Imagen models only</li>
+          <li>All providers support text generation tasks</li>
+        </ul>
       </div>
     </div>
   );
@@ -267,6 +500,54 @@ const AI_TASK_DESCRIPTIONS: Record<
   generateImage: {
     title: "Generate Background Image",
     description: "Model for generating the dynamic background image.",
+  },
+  getAppropriateness: {
+    title: "Appropriateness Evaluation",
+    description: "Model for evaluating study appropriateness against ACR criteria.",
+  },
+  getDetailedGuidance: {
+    title: "Detailed Clinical Guidance",
+    description: "Model for generating comprehensive real-world rundown guidance.",
+  },
+  refineDifferentials: {
+    title: "Refine Differentials",
+    description: "Model for updating differential diagnoses based on new findings.",
+  },
+  rundownAppropriateness: {
+    title: "Rundown: Appropriateness",
+    description: "Quick appropriateness check for the study.",
+  },
+  rundownMostLikely: {
+    title: "Rundown: Most Likely Diagnoses",
+    description: "Predict the most probable outcomes for the study.",
+  },
+  rundownTopFacts: {
+    title: "Rundown: Top Facts",
+    description: "High-yield clinical pearls for this case.",
+  },
+  rundownWhatToLookFor: {
+    title: "Rundown: What to Look For",
+    description: "Critical findings to actively search for.",
+  },
+  rundownPitfalls: {
+    title: "Rundown: Pitfalls & Mimics",
+    description: "Common mistakes and look-alikes to avoid.",
+  },
+  rundownSearchPattern: {
+    title: "Rundown: Search Pattern",
+    description: "Systematic approach to reviewing the images.",
+  },
+  rundownPertinentNegatives: {
+    title: "Rundown: Pertinent Negatives",
+    description: "Important negatives that answer clinical questions.",
+  },
+  rundownClassicSigns: {
+    title: "Rundown: Classic Signs",
+    description: "Pathognomonic features to confirm diagnoses.",
+  },
+  rundownBottomLine: {
+    title: "Rundown: Bottom Line",
+    description: "The single most important takeaway for this case.",
   },
 };
 
@@ -559,7 +840,7 @@ const SettingsPanel: React.FC = () => {
             onClick={() => setActiveTab("providers")}
             className={tabClasses("providers")}
           >
-            API Key
+            Providers
           </button>
           <button
             onClick={() => setActiveTab("prompts")}
@@ -580,7 +861,7 @@ const SettingsPanel: React.FC = () => {
               }
             />
           )}
-          {activeTab === "providers" && <ApiKeyManager />}
+          {activeTab === "providers" && <ProvidersTab />}
           {activeTab === "models" && (
             <ModelsTab
               settings={localSettings}
