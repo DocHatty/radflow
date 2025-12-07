@@ -29,10 +29,11 @@ This document summarizes the major system improvements implemented for RADFLOW b
 - ✅ Added .eslintignore and .prettierignore
 
 **TypeScript Improvements:**
-- ✅ Enabled strict mode in tsconfig.json
+- ✅ Configured TypeScript strict mode (commented out for gradual adoption)
 - ✅ Added noUnusedLocals, noUnusedParameters, noImplicitReturns
 - ✅ Added noFallthroughCasesInSwitch, forceConsistentCasingInFileNames
-- ✅ Better type safety across the codebase
+- ✅ Added @types/react and @types/react-dom
+- 📝 Note: Strict mode reveals 1300+ type issues - should be enabled incrementally
 
 **Pre-commit Hooks:**
 - ✅ Installed and configured husky
