@@ -1,3 +1,4 @@
+import React from "react";
 import { StateCreator } from "zustand";
 import { logEvent } from "../services/loggingService";
 import { runAiTask } from "../services/aiOrchestrator";
@@ -85,7 +86,7 @@ export interface WorkflowSlice {
   setError: (error: AppError | null) => void;
   setProcess: (process: ActiveProcess) => void;
   toggleDiagnosticsPanel: () => void;
-  setUserInput: (input: string) => void;
+  setUserInput: React.Dispatch<React.SetStateAction<string>>;
   setEditableReportContent: (content: string) => void;
   setExamDateInput: (date: string) => void;
   submitInput: () => Promise<void>;
@@ -299,7 +300,9 @@ export const createWorkflowSlice: StateCreator<
       return { isDiagnosticsPanelOpen: isOpen };
     }),
 
-  setUserInput: (input) => set({ userInput: input }),
+  setUserInput: (input) => set((state) => ({ 
+    userInput: typeof input === 'function' ? input(state.userInput) : input 
+  })),
   setEditableReportContent: (content) =>
     set({ editableReportContent: content }),
   setExamDateInput: (date) => set({ examDateInput: date }),
