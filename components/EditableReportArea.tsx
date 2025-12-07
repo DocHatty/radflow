@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import Panel from "./Panel";
 import ActionButton from "./ActionButton";
@@ -15,6 +15,8 @@ import { useWorkflowStore } from '../App';
 import { applySyntaxHighlighting } from "../utils/syntaxHighlighter";
 import { saveCaretPosition, restoreCaretPosition } from "../utils/caretUtils";
 import { htmlToText, textToHtml } from "../utils/textUtils";
+import CriticalFindingsAlert from "./CriticalFindingsAlert";
+import { detectCriticalFindings } from "../utils/criticalFindingsDetector";
 
 const ReportToolbar: React.FC<{
   isAnyLoading: boolean;
@@ -106,6 +108,11 @@ const EditableReportArea: React.FC = () => {
     onFinalReview: state.fetchFinalReview,
   }));
 
+  // Detect critical findings in the report
+  const criticalFindings = useMemo(() => {
+    return detectCriticalFindings(rawContent + " " + dictationInput);
+  }, [rawContent, dictationInput]);
+
   const isLoading = activeProcess === "generating";
   const isRefining = activeProcess === "refining";
   const isIntegrating = activeProcess === "integrating";
@@ -196,6 +203,13 @@ const EditableReportArea: React.FC = () => {
       className="h-full flex flex-col"
       bodyClassName="p-0 flex-1 flex flex-col min-h-0" // Ensure flex layout for body
     >
+      {/* Critical Findings Alert */}
+      {criticalFindings.length > 0 && (
+        <div className="p-4 pb-0">
+          <CriticalFindingsAlert findings={criticalFindings} />
+        </div>
+      )}
+
       {/* Main Editor Area */}
       <div className="relative flex-1 min-h-0 overflow-hidden">
         {(isLoading || isRefining) && !rawContent && (
