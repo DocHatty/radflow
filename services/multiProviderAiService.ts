@@ -159,6 +159,7 @@ const runFetchStreamRequest = async (
         endpoint = "https://openrouter.ai/api/v1";
         break;
       case "perplexity":
+        // Note: Perplexity API does not use /v1 in the base URL
         endpoint = "https://api.perplexity.ai";
         break;
       default:
