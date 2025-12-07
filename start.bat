@@ -1,8 +1,7 @@
 @echo off
-title HatPro7 Launcher
-echo ==========================================
-echo       HatPro7 Portable Launcher
-echo ==========================================
+title RadFlow Launcher
+echo RadFlow - Radiology AI Workflow Assistant
+echo.
 
 :: Check for Node.js
 echo Checking for Node.js...
