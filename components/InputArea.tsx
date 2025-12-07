@@ -1,5 +1,5 @@
 
-import React, { KeyboardEvent, useEffect } from 'react';
+import React, { KeyboardEvent, useEffect, useRef } from 'react';
 import ActionButton from './ActionButton';
 import { useWorkflowStore } from '../App';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
@@ -32,13 +32,18 @@ const InputArea: React.FC<InputAreaProps> = ({ isDisabled, buttonText, placehold
   } = useSpeechRecognition();
   
   const isLoading = activeProcess === 'categorizing';
+  
+  // Use ref to track current userInput value without triggering re-renders
+  const userInputRef = useRef(userInput);
+  userInputRef.current = userInput;
 
   useEffect(() => {
     if (finalTranscript) {
-      setUserInput((userInput.trim() ? userInput.trim() + ' ' : '') + finalTranscript);
+      const currentInput = userInputRef.current;
+      setUserInput((currentInput.trim() ? currentInput.trim() + ' ' : '') + finalTranscript);
       resetTranscript();
     }
-  }, [finalTranscript, userInput, setUserInput, resetTranscript]);
+  }, [finalTranscript, setUserInput, resetTranscript]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
