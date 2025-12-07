@@ -6,10 +6,17 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+# Set default permissions to read-only for security
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint and Format Check
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout code
@@ -34,6 +41,9 @@ jobs:
     name: TypeScript Type Check
     runs-on: ubuntu-latest
     
+    permissions:
+      contents: read
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -53,6 +63,9 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout code
@@ -84,6 +97,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, type-check, test]
     
+    permissions:
+      contents: read
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -110,6 +126,9 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout code
