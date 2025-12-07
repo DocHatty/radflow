@@ -17,6 +17,7 @@ import { saveCaretPosition, restoreCaretPosition } from "../utils/caretUtils";
 import { htmlToText, textToHtml } from "../utils/textUtils";
 import CriticalFindingsAlert from "./CriticalFindingsAlert";
 import { detectCriticalFindings } from "../utils/criticalFindingsDetector";
+import ReportCompletionEstimator from "./ReportCompletionEstimator";
 
 const ReportToolbar: React.FC<{
   isAnyLoading: boolean;
@@ -203,12 +204,13 @@ const EditableReportArea: React.FC = () => {
       className="h-full flex flex-col"
       bodyClassName="p-0 flex-1 flex flex-col min-h-0" // Ensure flex layout for body
     >
-      {/* Critical Findings Alert */}
-      {criticalFindings.length > 0 && (
-        <div className="p-4 pb-0">
+      {/* Report Completion Estimator & Critical Findings Alert */}
+      <div className="p-4 pb-0 space-y-3">
+        <ReportCompletionEstimator reportContent={rawContent} />
+        {criticalFindings.length > 0 && (
           <CriticalFindingsAlert findings={criticalFindings} />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Main Editor Area */}
       <div className="relative flex-1 min-h-0 overflow-hidden">
