@@ -94,25 +94,25 @@ interface SectionCardProps {
 
 const SectionCard: React.FC<SectionCardProps> = ({ section, icon }) => {
   return (
-    <div className="bg-(--color-panel-bg) border border-(--color-border) rounded-xl p-5 space-y-3 shadow-sm">
+    <div className="bg-(--color-panel-bg) border border-(--color-border) rounded-lg p-3 space-y-2 shadow-sm hover:border-(--color-primary-dim) transition-colors duration-200">
       <div className="flex items-center gap-2">
-        {icon && <span className="text-(--color-primary)">{icon}</span>}
-        <h3 className="text-xs font-bold text-(--color-primary) uppercase tracking-wider">
+        {icon && <span className="text-(--color-primary) opacity-90">{icon}</span>}
+        <h3 className="text-xs font-bold text-(--color-primary) uppercase tracking-wide">
           {section.title}
         </h3>
       </div>
       {section.isLoading ? (
-        <div className="flex justify-center items-center py-6">
-          <LoadingSpinner className="w-5 h-5 text-(--color-primary)" />
+        <div className="flex justify-center items-center py-4">
+          <LoadingSpinner className="w-4 h-4 text-(--color-primary)" />
         </div>
       ) : section.error ? (
-        <div className="text-xs text-(--color-danger-text) bg-(--color-danger-bg) border border-(--color-danger-border) rounded-lg px-3 py-2">
+        <div className="text-xs text-(--color-danger-text) bg-(--color-danger-bg) border border-(--color-danger-border) rounded px-2 py-1">
           {section.error}
         </div>
       ) : section.content ? (
         <FormattedContent content={section.content} />
       ) : (
-        <div className="text-xs text-(--color-text-muted) italic py-2">
+        <div className="text-xs text-(--color-text-muted) italic py-1">
           Waiting...
         </div>
       )}
@@ -257,7 +257,7 @@ const RealWorldRundown: React.FC<RealWorldRundownProps> = ({
       {!data || (!hasAnyContent && !isGenerating) ? (
         <EmptyState message="Real-world clinical guidance will appear here." />
       ) : (
-        <div className="space-y-4 overflow-y-auto pr-1">
+        <div className="space-y-3 overflow-y-auto pr-1">
           {/* High-yield pearls - most important, at the top */}
           <SectionCard section={data.topFacts} icon={Icons.topFacts} />
 
@@ -268,7 +268,7 @@ const RealWorldRundown: React.FC<RealWorldRundownProps> = ({
           />
 
           {/* Two-column layout for pitfalls and classic signs */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <SectionCard section={data.pitfalls} icon={Icons.pitfalls} />
             <SectionCard
               section={data.classicSigns}

@@ -100,6 +100,8 @@ export const createSettingsSlice: StateCreator<
             // Force update ALL rundown prompts to use new concise format
             parsed.prompts.RUNDOWN_APPROPRIATENESS_INSTRUCTION =
               DEFAULT_SETTINGS.prompts.RUNDOWN_APPROPRIATENESS_INSTRUCTION;
+            parsed.prompts.RUNDOWN_MOST_LIKELY_INSTRUCTION =
+              DEFAULT_SETTINGS.prompts.RUNDOWN_MOST_LIKELY_INSTRUCTION;
             parsed.prompts.RUNDOWN_TOP_FACTS_INSTRUCTION =
               DEFAULT_SETTINGS.prompts.RUNDOWN_TOP_FACTS_INSTRUCTION;
             parsed.prompts.RUNDOWN_WHAT_TO_LOOK_FOR_INSTRUCTION =
@@ -122,7 +124,7 @@ export const createSettingsSlice: StateCreator<
               const assignments = parsed.modelAssignments[providerKey];
               const defaultAssignments =
                 DEFAULT_SETTINGS.modelAssignments[
-                  DEFAULT_SETTINGS.providers[0].id
+                DEFAULT_SETTINGS.providers[0].id
                 ];
 
               // Add any missing keys from default assignments
@@ -239,7 +241,7 @@ export const createSettingsSlice: StateCreator<
         ...state.settings.modelAssignments,
         [newProvider.id]: {
           ...DEFAULT_SETTINGS.modelAssignments[
-            DEFAULT_SETTINGS.providers[0].id
+          DEFAULT_SETTINGS.providers[0].id
           ],
         },
       };
