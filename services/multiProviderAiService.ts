@@ -1,6 +1,8 @@
 // services/multiProviderAiService.ts
 import { GoogleGenAI } from "@google/genai";
 import { ApiProvider } from "../types";
+import { withRetry } from "../utils/apiRetry";
+import { logEvent } from "./loggingService";
 
 interface AiRequestPayload {
   provider: ApiProvider;
@@ -277,48 +279,96 @@ const runFetchStreamRequest = async (
 // --- Public Service Interface ---
 export const multiProviderAiService = {
   async generateJson(payload: AiRequestPayload, schema: any) {
-    if (payload.provider.providerId === "google") {
-      return runGoogleRequest(payload, schema);
-    } else {
-      // Non-Google providers often don't support response schemas as robustly via API.
-      // We can simulate it by adding instructions to the prompt.
-      const promptWithSchema = `${payload.prompt}\n\nIMPORTANT: Your response MUST be a single, valid JSON object that conforms to the following schema. Do not include any other text, markdown, or explanations.\n\nSCHEMA:\n${JSON.stringify(schema, null, 2)}`;
+    return withRetry(
+      async () => {
+        if (payload.provider.providerId === "google") {
+          return runGoogleRequest(payload, schema);
+        } else {
+          // Non-Google providers often don't support response schemas as robustly via API.
+          // We can simulate it by adding instructions to the prompt.
+          const promptWithSchema = `${payload.prompt}\n\nIMPORTANT: Your response MUST be a single, valid JSON object that conforms to the following schema. Do not include any other text, markdown, or explanations.\n\nSCHEMA:\n${JSON.stringify(schema, null, 2)}`;
 
-      const streamPayload = {
-        ...payload,
-        prompt: promptWithSchema,
-        onChunk: undefined,
-      };
-      const fullText = await runFetchStreamRequest(streamPayload);
+          const streamPayload = {
+            ...payload,
+            prompt: promptWithSchema,
+            onChunk: undefined,
+          };
+          const fullText = await runFetchStreamRequest(streamPayload);
 
-      // Extract JSON from the response text
-      const jsonMatch = fullText.match(/```json\n([\s\S]*?)\n```|({[\s\S]*})/);
-      if (!jsonMatch) {
-        throw new Error("AI did not return a valid JSON object.");
+          // Extract JSON from the response text
+          const jsonMatch = fullText.match(/```json\n([\s\S]*?)\n```|({[\s\S]*})/);
+          if (!jsonMatch) {
+            throw new Error("AI did not return a valid JSON object.");
+          }
+          const jsonString = jsonMatch[1] || jsonMatch[2];
+          return JSON.parse(jsonString);
+        }
+      },
+      {
+        maxRetries: 3,
+        initialDelayMs: 1000,
+        onRetry: (attempt, error) => {
+          logEvent('AI_REQUEST_RETRY', {
+            attempt,
+            error: error.message,
+            provider: payload.provider.name,
+            model: payload.model,
+          });
+        },
       }
-      const jsonString = jsonMatch[1] || jsonMatch[2];
-      return JSON.parse(jsonString);
-    }
+    );
   },
 
   async generateStream(payload: AiRequestPayload): Promise<string> {
-    if (payload.provider.providerId === "google") {
-      return runGoogleStreamRequest(payload);
-    } else {
-      return runFetchStreamRequest(payload);
-    }
+    return withRetry(
+      async () => {
+        if (payload.provider.providerId === "google") {
+          return runGoogleStreamRequest(payload);
+        } else {
+          return runFetchStreamRequest(payload);
+        }
+      },
+      {
+        maxRetries: 2, // Fewer retries for streaming to avoid long waits
+        initialDelayMs: 500,
+        onRetry: (attempt, error) => {
+          logEvent('AI_STREAM_RETRY', {
+            attempt,
+            error: error.message,
+            provider: payload.provider.name,
+          });
+        },
+      }
+    );
   },
 
   async generateWithGrounding(payload: AiRequestPayload) {
     if (payload.provider.providerId !== "google") {
       throw new Error("Grounding is only supported by Google providers.");
     }
-    return runGoogleRequest(payload, undefined, true);
+    return withRetry(
+      () => runGoogleRequest(payload, undefined, true),
+      {
+        maxRetries: 3,
+        onRetry: (attempt, error) => {
+          logEvent('AI_GROUNDING_RETRY', { attempt, error: error.message });
+        },
+      }
+    );
   },
 
   async generateImage(payload: AiRequestPayload): Promise<string> {
     if (payload.provider.providerId === "google") {
-      return runGoogleImageRequest(payload);
+      return withRetry(
+        () => runGoogleImageRequest(payload),
+        {
+          maxRetries: 2,
+          initialDelayMs: 2000,
+          onRetry: (attempt, error) => {
+            logEvent('AI_IMAGE_RETRY', { attempt, error: error.message });
+          },
+        }
+      );
     } else {
       throw new Error(
         "Image generation is currently only supported by Google Imagen models.",
