@@ -105,7 +105,7 @@ export type PromptKey =
   | "RUNDOWN_BOTTOM_LINE_INSTRUCTION"
   | "RUNDOWN_APPROPRIATENESS_INSTRUCTION";
 
-export type ProviderId = "google" | "openai" | "anthropic" | "openrouter";
+export type ProviderId = "google" | "openai" | "anthropic" | "openrouter" | "perplexity";
 
 export interface ApiProvider {
   id: string; // Unique identifier for the provider configuration

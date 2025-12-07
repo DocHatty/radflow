@@ -3,9 +3,18 @@ import { ApiProvider, FetchedModel } from "../types";
 import { GoogleGenAI } from "@google/genai";
 
 const ANTHROPIC_MODELS: FetchedModel[] = [
+    { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
     { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
     { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet' },
     { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku' },
+];
+
+const PERPLEXITY_MODELS: FetchedModel[] = [
+    { id: 'llama-3.1-sonar-small-128k-online', name: 'Llama 3.1 Sonar Small (128k, Online)' },
+    { id: 'llama-3.1-sonar-large-128k-online', name: 'Llama 3.1 Sonar Large (128k, Online)' },
+    { id: 'llama-3.1-sonar-huge-128k-online', name: 'Llama 3.1 Sonar Huge (128k, Online)' },
+    { id: 'llama-3.1-sonar-small-128k-chat', name: 'Llama 3.1 Sonar Small (128k, Chat)' },
+    { id: 'llama-3.1-sonar-large-128k-chat', name: 'Llama 3.1 Sonar Large (128k, Chat)' },
 ];
 
 async function fetchGoogleModels(provider: ApiProvider): Promise<FetchedModel[]> {
@@ -73,6 +82,8 @@ export async function fetchModels(provider: ApiProvider): Promise<FetchedModel[]
             return Promise.resolve(ANTHROPIC_MODELS);
         case 'openrouter':
             return fetchOpenRouterModels();
+        case 'perplexity':
+            return Promise.resolve(PERPLEXITY_MODELS);
         default:
             throw new Error(`Fetching models for provider '${provider.providerId}' is not supported.`);
     }
