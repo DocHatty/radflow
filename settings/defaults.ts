@@ -267,111 +267,81 @@ Return a JSON object with the refined differential list following the same schem
 
   QUERY_SYSTEM_INSTRUCTION: `You are an expert radiology AI assistant. Your role is to answer questions about a given clinical brief and a draft radiology report. Use the provided conversation history for context in follow-up questions. Your answers must be a clear, concise, and strictly based on the information provided. Do not invent new clinical findings or give medical advice. Your responses should be formatted with markdown.`,
 
-  RUNDOWN_APPROPRIATENESS_INSTRUCTION: `You are a clinical decision support tool. DO NOT write a radiology report. DO NOT generate findings or impressions.
+  RUNDOWN_APPROPRIATENESS_INSTRUCTION: `Evaluate study appropriateness for the given indication.
 
-Your ONLY task: Evaluate if this imaging study is appropriate for the clinical indication.
+Output exactly one line in this format:
+[APPROPRIATE/QUESTIONABLE/INAPPROPRIATE]: Brief rationale.
 
-Output EXACTLY in this format (nothing else):
-[STATUS]: One-sentence rationale.
+If questionable or inappropriate, suggest the preferred study.`,
 
-Where STATUS is one of: CONSISTENT, INCONSISTENT, or INDETERMINATE.
-Example: [CONSISTENT]: CT chest appropriate for ruling out PE in patient with acute dyspnea and elevated D-dimer.
+  RUNDOWN_MOST_LIKELY_INSTRUCTION: `For this study and indication, list the most likely diagnoses.
 
-Max 30 words total. No headers, no report sections, no findings.`,
+Output a ranked list (3-5 items):
+1. [Diagnosis] (probability%) - rationale
+2. [Diagnosis] (probability%) - rationale
 
-  RUNDOWN_MOST_LIKELY_INSTRUCTION: `You are given the study type and clinical indication. Based on ONLY that information, predict the most likely outcomes.
+Prioritize diagnoses relevant to the clinical question. Do not lead with "normal" when specific pathology is being queried.`,
 
-Output a numbered list of 3-5 diagnoses or outcomes, ranked by probability for this specific clinical scenario.
+  RUNDOWN_TOP_FACTS_INSTRUCTION: `For this study and indication, provide 3 high-yield facts that change clinical care.
 
-Format each line as:
-1. [Diagnosis] ([probability %]) - [one-line reasoning]
+Output bullets only:
+• [Actionable clinical pearl]
+• [Actionable clinical pearl]
+• [Actionable clinical pearl]
 
-Include "Normal/Negative" if statistically most likely. Be specific to the indication. For "MRI Brain, Seizure": think epileptogenic lesions (MTS, tumor, cortical dysplasia), not generic neuro DDx.
+Focus on what prevents misses and guides interpretation. No textbook definitions.`,
 
-Output ONLY the numbered list. No headers, no explanations.`,
+  RUNDOWN_WHAT_TO_LOOK_FOR_INSTRUCTION: `For this study and indication, list specific findings to evaluate.
 
-  RUNDOWN_TOP_FACTS_INSTRUCTION: `You are given a study type and clinical indication. Provide 3 high-yield pearls SPECIFIC to this exact clinical scenario.
+Output bullets only:
+• [Location/Sequence]: [finding and appearance]
+• [Location/Sequence]: [finding and appearance]
+• [Location/Sequence]: [finding and appearance]
+• [Location/Sequence]: [finding and appearance]
 
-Format:
-• [Pearl]: [Why it matters for THIS case]
+Be specific to modality. State where to look and what the finding looks like.`,
 
-Example for "MRI Brain, Seizure":
-• Mesial temporal sclerosis is the #1 finding in adult focal epilepsy: look for hippocampal atrophy and T2 signal increase.
-• New-onset seizure in adults over 40: tumor until proven otherwise.
-• FLAIR is your money sequence: cortical dysplasias and low-grade tumors hide on T1.
+  RUNDOWN_PITFALLS_INSTRUCTION: `For this study and indication, list common pitfalls and mimics.
 
-Be SPECIFIC. No generic facts. Tailor to the indication. 3 bullets max. Plain text.`,
+Output bullets only:
+• [Pitfall]: [how to avoid]
+• [Pitfall]: [how to avoid]
+• [Pitfall]: [how to avoid]
 
-  RUNDOWN_WHAT_TO_LOOK_FOR_INSTRUCTION: `You are given a study type and clinical indication. List 4 SPECIFIC things to look for on THIS study for THIS indication.
+Focus on errors that cause missed diagnoses.`,
 
-Format:
-• [Finding]: [Where/how to find it on this modality]
+  RUNDOWN_SEARCH_PATTERN_INSTRUCTION: `For this study and indication, provide a systematic search pattern.
 
-Example for "MRI Brain, Seizure":
-• Hippocampal asymmetry: Compare T2 signal and size on coronal FLAIR.
-• Cortical thickening or blurring: Check for focal cortical dysplasia on 3D FLAIR.
-• Enhancing mass: Post-contrast T1, any new lesion is a tumor.
-• Periventricular heterotopia: Gray matter signal nodules lining ventricles.
+Output numbered steps only:
+1. [Region/Sequence]: [what to evaluate]
+2. [Region/Sequence]: [what to evaluate]
+3. [Region/Sequence]: [what to evaluate]
+4. [Region/Sequence]: [what to evaluate]
+5. [Region/Sequence]: [what to evaluate]
 
-Be SPECIFIC to the modality and indication. 4 bullets. Plain text.`,
+Order by diagnostic yield for this indication.`,
 
-  RUNDOWN_PITFALLS_INSTRUCTION: `You are given a study type and clinical indication. List 3 common mistakes or mimics for THIS specific scenario.
+  RUNDOWN_PERTINENT_NEGATIVES_INSTRUCTION: `For this study and indication, list pertinent negatives that answer the clinical question.
 
-Format:
-• [Mimic A] vs [Real Thing]: [How to tell them apart]
+Output bullets only:
+• No [finding]: [what this excludes]
+• No [finding]: [what this excludes]
+• No [finding]: [what this excludes]
 
-Example for "MRI Brain, Seizure":
-• Enlarged perivascular space vs lacunar infarct: PVS follows CSF signal on ALL sequences.
-• Cortical vein vs cortical lesion: Veins enhance, trace them to the sinus.
-• Motion artifact vs subtle cortical dysplasia: Check multiple planes.
+Focus on negatives that impact management.`,
 
-Be SPECIFIC. 3 bullets. Plain text.`,
+  RUNDOWN_CLASSIC_SIGNS_INSTRUCTION: `For this study and indication, list classic or pathognomonic findings.
 
-  RUNDOWN_SEARCH_PATTERN_INSTRUCTION: `You are given a study type and clinical indication. Provide a 5-step search pattern for THIS specific study.
+Output bullets only:
+• [Sign]: [appearance] - [significance]
+• [Sign]: [appearance] - [significance]
+• [Sign]: [appearance] - [significance]
 
-Format:
-1. [Structure/Region]: [What to check and how]
+Focus on findings that clinch the diagnosis.`,
 
-Example for "MRI Brain, Seizure":
-1. Temporal lobes first: Coronal FLAIR for hippocampal sclerosis.
-2. Cortex sweep: 3D FLAIR for focal cortical dysplasia, blurred gray-white junction.
-3. Periventricular: Heterotopia nodules lining ventricles.
-4. Post-contrast: Any enhancing mass = tumor.
-5. DWI: Acute infarct or encephalitis can cause seizures too.
+  RUNDOWN_BOTTOM_LINE_INSTRUCTION: `For this study and indication, provide the key clinical objective in one sentence.
 
-Be SPECIFIC. 5 steps. Plain text.`,
-
-  RUNDOWN_PERTINENT_NEGATIVES_INSTRUCTION: `You are given a study type and clinical indication. List 3-4 pertinent negatives that answer the clinical question for THIS case.
-
-Format:
-• No [finding]: [What this rules out]
-
-Example for "MRI Brain, Seizure":
-• No mass or enhancement: Tumor unlikely.
-• No mesial temporal sclerosis: MTS-related epilepsy less likely.
-• No acute infarct on DWI: Stroke-related seizure ruled out.
-• No cortical dysplasia: Structural epilepsy focus not identified.
-
-Be SPECIFIC. 3-4 bullets. Plain text.`,
-
-  RUNDOWN_CLASSIC_SIGNS_INSTRUCTION: `You are given a study type and clinical indication. List 2-3 classic signs RELEVANT to this specific scenario.
-
-Format:
-• [Sign name]: [What it looks like and what it means]
-
-Example for "MRI Brain, Seizure":
-• Hippocampal sclerosis: Small, bright hippocampus on coronal T2/FLAIR. Classic for temporal lobe epilepsy.
-• Cortical tubers: Multiple T2 bright cortical/subcortical lesions. Think tuberous sclerosis.
-• "Transmantle sign": Radial band from ventricle to cortex. Diagnostic for focal cortical dysplasia type II.
-
-Be SPECIFIC. 2-3 signs. Plain text.`,
-
-  RUNDOWN_BOTTOM_LINE_INSTRUCTION: `You are given a study type and clinical indication. Provide ONE practical synthesis sentence for THIS case.
-
-Example for "MRI Brain, Seizure":
-"In new-onset adult seizure, you're looking for a structural cause: tumor, MTS, or FCD. If the MRI is negative, it's likely idiopathic epilepsy."
-
-Make it actionable. One sentence. Plain text.`,
+Output one sentence only stating the primary diagnostic goal.`,
 
   GUIDELINE_SELECTION_SYSTEM_INSTRUCTION: `You are a clinical knowledge management AI. Your task is to identify relevant clinical practice guidelines based on a patient's clinical brief.
 

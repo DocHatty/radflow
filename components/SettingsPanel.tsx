@@ -14,7 +14,37 @@ import {
 } from "../types";
 import { logError, logEvent } from "../services/loggingService";
 import { fetchModels } from "../services/modelFetcherService";
+import { validateProvider, getRecommendedModels } from "../services/providerValidationService";
 import LoadingSpinner from "./LoadingSpinner";
+
+// Check icon for validation success
+const CheckCircleIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+
+// X circle icon for validation failure
+const XCircleIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+
+// Zap icon for auto-configure
+const ZapIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+  </svg>
+);
 
 // --- PROMPTS TAB ---
 
@@ -103,11 +133,16 @@ const PromptsTab: React.FC<{
         <div className="space-y-6 pt-4">
           {group.keys.map((key) => (
             <div key={key}>
-              <label className="block text-sm font-bold text-(--color-text-bright) mb-1 uppercase tracking-wider">
+              <label
+                htmlFor={`prompt-${key}`}
+                className="block text-sm font-bold text-(--color-text-bright) mb-1 uppercase tracking-wider"
+              >
                 {key.replace(/_/g, " ").replace("SYSTEM INSTRUCTION", "")}
               </label>
               <p className="text-xs text-(--color-text-muted) mb-2">{promptDescriptions[key]}</p>
               <textarea
+                id={`prompt-${key}`}
+                name={`prompt-${key}`}
                 value={settings.prompts[key]}
                 onChange={(e) => onChange(key, e.target.value)}
                 className="w-full h-48 p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) font-mono resize-y focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
@@ -123,16 +158,20 @@ const PromptsTab: React.FC<{
 // --- PROVIDERS TAB ---
 
 const PasswordInput: React.FC<{
+  id: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}> = ({ value, onChange }) => {
+}> = ({ id, value, onChange }) => {
   const [isVisible, setIsVisible] = useState(false);
   return (
     <div className="relative">
       <input
+        id={id}
+        name={id}
         type={isVisible ? "text" : "password"}
         value={value}
         onChange={onChange}
+        autoComplete="off"
         className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) font-mono focus:outline-none focus:ring-1 focus:ring-(--color-primary) pr-10"
         placeholder="Enter API Key"
       />
@@ -148,14 +187,21 @@ const PasswordInput: React.FC<{
 };
 
 const ProvidersTab: React.FC = () => {
-  const { settings, addProvider, updateProvider, removeProvider, setActiveProviderId } =
-    useWorkflowStore((state) => ({
-      settings: state.settings as Settings,
-      addProvider: state.addProvider,
-      updateProvider: state.updateProvider,
-      removeProvider: state.removeProvider,
-      setActiveProviderId: state.setActiveProviderId,
-    }));
+  const {
+    settings,
+    addProvider,
+    updateProvider,
+    removeProvider,
+    setActiveProviderId,
+    updateModelAssignment,
+  } = useWorkflowStore((state) => ({
+    settings: state.settings as Settings,
+    addProvider: state.addProvider,
+    updateProvider: state.updateProvider,
+    removeProvider: state.removeProvider,
+    setActiveProviderId: state.setActiveProviderId,
+    updateModelAssignment: state.updateModelAssignment,
+  }));
 
   const [showAddProvider, setShowAddProvider] = useState(false);
   const [newProvider, setNewProvider] = useState<{
@@ -169,6 +215,100 @@ const ProvidersTab: React.FC = () => {
     apiKey: "",
     baseUrl: "",
   });
+
+  // Validation state per provider
+  const [validationStates, setValidationStates] = useState<
+    Record<
+      string,
+      {
+        status: "idle" | "validating" | "valid" | "invalid";
+        message?: string;
+        models?: FetchedModel[];
+        latencyMs?: number;
+      }
+    >
+  >({});
+
+  // Handle validation for a provider
+  const handleValidateProvider = useCallback(
+    async (provider: (typeof settings.providers)[0]) => {
+      setValidationStates((prev) => ({
+        ...prev,
+        [provider.id]: { status: "validating" },
+      }));
+
+      try {
+        const result = await validateProvider(provider);
+        setValidationStates((prev) => ({
+          ...prev,
+          [provider.id]: {
+            status: result.isValid ? "valid" : "invalid",
+            message: result.message,
+            models: result.models,
+            latencyMs: result.latencyMs,
+          },
+        }));
+
+        // If valid and has models, offer to auto-configure
+        if (result.isValid && result.models && result.models.length > 0) {
+          logEvent("Provider validated with models", {
+            providerId: provider.providerId,
+            modelCount: result.models.length,
+          });
+        }
+
+        return result;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Validation failed";
+        setValidationStates((prev) => ({
+          ...prev,
+          [provider.id]: { status: "invalid", message },
+        }));
+        return null;
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [settings.providers]
+  );
+
+  // Auto-configure models for a provider
+  const handleAutoConfigure = useCallback(
+    async (provider: (typeof settings.providers)[0]) => {
+      const validation = validationStates[provider.id];
+
+      // If not validated yet, validate first
+      let models = validation?.models;
+      if (!models || validation?.status !== "valid") {
+        const result = await handleValidateProvider(provider);
+        if (!result?.isValid || !result.models) {
+          return;
+        }
+        models = result.models;
+      }
+
+      // Get recommended model assignments
+      const recommendations = getRecommendedModels(provider.providerId, models);
+
+      // Apply all recommendations
+      Object.entries(recommendations).forEach(([task, modelId]) => {
+        updateModelAssignment(provider.id, { [task]: modelId });
+      });
+
+      // Set as active provider
+      setActiveProviderId(provider.id);
+
+      logEvent("Provider auto-configured", {
+        providerId: provider.providerId,
+        tasksConfigured: Object.keys(recommendations).length,
+      });
+
+      alert(
+        `Auto-configured ${Object.keys(recommendations).length} task assignments for ${provider.name}!`
+      );
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [validationStates, handleValidateProvider, updateModelAssignment, setActiveProviderId]
+  );
 
   const providerInfo: Record<ProviderId, { name: string; url: string; defaultBaseUrl?: string }> = {
     google: { name: "Google Gemini", url: "https://aistudio.google.com/apikey" },
@@ -285,10 +425,14 @@ const ProvidersTab: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+                <label
+                  htmlFor={`apikey-${provider.id}`}
+                  className="block text-sm font-semibold text-(--color-text-muted) mb-2"
+                >
                   API Key
                 </label>
                 <PasswordInput
+                  id={`apikey-${provider.id}`}
                   value={provider.apiKey}
                   onChange={(e) => updateProvider({ ...provider, apiKey: e.target.value })}
                 />
@@ -296,16 +440,82 @@ const ProvidersTab: React.FC = () => {
 
               {provider.baseUrl && (
                 <div>
-                  <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+                  <label
+                    htmlFor={`baseurl-${provider.id}`}
+                    className="block text-sm font-semibold text-(--color-text-muted) mb-2"
+                  >
                     Base URL (Optional)
                   </label>
                   <input
+                    id={`baseurl-${provider.id}`}
+                    name={`baseurl-${provider.id}`}
                     type="text"
                     value={provider.baseUrl}
                     onChange={(e) => updateProvider({ ...provider, baseUrl: e.target.value })}
                     className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) font-mono focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
                     placeholder={info.defaultBaseUrl}
                   />
+                </div>
+              )}
+
+              {/* Validation Status & Actions */}
+              {provider.apiKey && (
+                <div className="flex flex-col gap-2">
+                  {/* Validation Status */}
+                  {validationStates[provider.id] && (
+                    <div
+                      className={`flex items-center gap-2 p-2 rounded-md text-xs ${
+                        validationStates[provider.id].status === "valid"
+                          ? "bg-green-500/10 border border-green-500/30 text-green-400"
+                          : validationStates[provider.id].status === "invalid"
+                            ? "bg-red-500/10 border border-red-500/30 text-red-400"
+                            : validationStates[provider.id].status === "validating"
+                              ? "bg-blue-500/10 border border-blue-500/30 text-blue-400"
+                              : ""
+                      }`}
+                    >
+                      {validationStates[provider.id].status === "validating" && (
+                        <LoadingSpinner className="h-4 w-4" />
+                      )}
+                      {validationStates[provider.id].status === "valid" && (
+                        <CheckCircleIcon className="h-4 w-4" />
+                      )}
+                      {validationStates[provider.id].status === "invalid" && (
+                        <XCircleIcon className="h-4 w-4" />
+                      )}
+                      <span className="flex-1">{validationStates[provider.id].message}</span>
+                      {validationStates[provider.id].latencyMs && (
+                        <span className="text-xs opacity-60">
+                          {validationStates[provider.id].latencyMs}ms
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleValidateProvider(provider)}
+                      disabled={validationStates[provider.id]?.status === "validating"}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md bg-(--color-interactive-bg) hover:bg-(--color-interactive-bg-hover) text-(--color-text-default) border border-(--color-border) disabled:opacity-50 transition-colors"
+                    >
+                      {validationStates[provider.id]?.status === "validating" ? (
+                        <LoadingSpinner className="h-4 w-4" />
+                      ) : (
+                        <CheckCircleIcon className="h-4 w-4" />
+                      )}
+                      Test Connection
+                    </button>
+                    <button
+                      onClick={() => handleAutoConfigure(provider)}
+                      disabled={validationStates[provider.id]?.status === "validating"}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-xs rounded-md bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white disabled:opacity-50 transition-colors"
+                      title="Validate API key, fetch models, and auto-assign to all tasks"
+                    >
+                      <ZapIcon className="h-4 w-4" />
+                      Auto-Configure
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -340,10 +550,15 @@ const ProvidersTab: React.FC = () => {
           <h4 className="font-semibold text-white">Add New Provider</h4>
 
           <div>
-            <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+            <label
+              htmlFor="new-provider-type"
+              className="block text-sm font-semibold text-(--color-text-muted) mb-2"
+            >
               Provider Type
             </label>
             <select
+              id="new-provider-type"
+              name="new-provider-type"
               value={newProvider.providerId}
               onChange={(e) =>
                 setNewProvider({
@@ -364,10 +579,15 @@ const ProvidersTab: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+            <label
+              htmlFor="new-provider-name"
+              className="block text-sm font-semibold text-(--color-text-muted) mb-2"
+            >
               Name (Optional)
             </label>
             <input
+              id="new-provider-name"
+              name="new-provider-name"
               type="text"
               value={newProvider.name}
               onChange={(e) => setNewProvider({ ...newProvider, name: e.target.value })}
@@ -377,20 +597,29 @@ const ProvidersTab: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+            <label
+              htmlFor="new-provider-apikey"
+              className="block text-sm font-semibold text-(--color-text-muted) mb-2"
+            >
               API Key *
             </label>
             <PasswordInput
+              id="new-provider-apikey"
               value={newProvider.apiKey}
               onChange={(e) => setNewProvider({ ...newProvider, apiKey: e.target.value })}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-(--color-text-muted) mb-2">
+            <label
+              htmlFor="new-provider-baseurl"
+              className="block text-sm font-semibold text-(--color-text-muted) mb-2"
+            >
               Base URL (Optional)
             </label>
             <input
+              id="new-provider-baseurl"
+              name="new-provider-baseurl"
               type="text"
               value={newProvider.baseUrl}
               onChange={(e) => setNewProvider({ ...newProvider, baseUrl: e.target.value })}
@@ -565,11 +794,14 @@ const AI_TASK_DESCRIPTIONS: Record<AiTaskType, { title: string; description: str
   },
 };
 
-const ModelsTab: React.FC<{
-  settings: Settings;
-  onActiveProviderChange: (id: string) => void;
-  onModelChange: (providerId: string, assignments: Partial<ModelAssignment>) => void;
-}> = ({ settings, onActiveProviderChange, onModelChange }) => {
+const ModelsTab: React.FC = () => {
+  // Use store directly so we see providers added in ProvidersTab immediately
+  const { settings, setActiveProviderId, updateModelAssignment } = useWorkflowStore((state) => ({
+    settings: state.settings as Settings,
+    setActiveProviderId: state.setActiveProviderId,
+    updateModelAssignment: state.updateModelAssignment,
+  }));
+
   const [modelLists, setModelLists] = useState<Record<string, FetchedModel[]>>({});
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [errorStates, setErrorStates] = useState<Record<string, string | null>>({});
@@ -614,7 +846,7 @@ const ModelsTab: React.FC<{
   }, [activeProvider, handleFetchModels, modelLists, loadingStates, errorStates]);
 
   const handleModelInputChange = (task: AiTaskType, value: string) => {
-    onModelChange(settings.activeProviderId, { [task]: value });
+    updateModelAssignment(settings.activeProviderId, { [task]: value });
   };
 
   const handleTestBackground = async () => {
@@ -645,15 +877,20 @@ const ModelsTab: React.FC<{
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-bold text-(--color-text-bright) mb-1 uppercase tracking-wider">
+        <label
+          htmlFor="active-provider-select"
+          className="block text-sm font-bold text-(--color-text-bright) mb-1 uppercase tracking-wider"
+        >
           Active API Provider
         </label>
         <p className="text-xs text-(--color-text-muted) mb-2">
           Select which configured provider the application should use for AI tasks.
         </p>
         <select
+          id="active-provider-select"
+          name="active-provider-select"
           value={settings.activeProviderId}
-          onChange={(e) => onActiveProviderChange(e.target.value)}
+          onChange={(e) => setActiveProviderId(e.target.value)}
           className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
         >
           {settings.providers.map((p) => (
@@ -698,12 +935,17 @@ const ModelsTab: React.FC<{
           <div className="space-y-5">
             {Object.entries(AI_TASK_DESCRIPTIONS).map(([task, details]) => (
               <div key={task}>
-                <label className="block text-sm font-semibold text-(--color-text-bright)">
+                <label
+                  htmlFor={`model-${task}`}
+                  className="block text-sm font-semibold text-(--color-text-bright)"
+                >
                   {details.title}
                 </label>
                 <p className="text-xs text-(--color-text-muted) mb-1.5">{details.description}</p>
                 <div className="flex space-x-2">
                   <input
+                    id={`model-${task}`}
+                    name={`model-${task}`}
                     type="text"
                     list={modelDatalistId}
                     value={currentAssignments[task as AiTaskType] || ""}
@@ -830,13 +1072,7 @@ const SettingsPanel: React.FC = () => {
             />
           )}
           {activeTab === "providers" && <ProvidersTab />}
-          {activeTab === "models" && (
-            <ModelsTab
-              settings={localSettings}
-              onActiveProviderChange={setActiveProviderId}
-              onModelChange={updateModelAssignment}
-            />
-          )}
+          {activeTab === "models" && <ModelsTab />}
         </div>
 
         <footer className="flex items-center justify-between p-4 border-t border-(--color-secondary)/30 shrink-0 bg-(--color-base)/90">

@@ -101,7 +101,7 @@ export interface WorkflowSlice {
   submitQuery: (query: string) => Promise<void>;
   clearQueryHistory: () => void;
   setCopilotView: (view: CopilotView) => void;
-  resolveContrastClarification: (contrastChoice: string) => void;
+  resolveContrastClarification: (contrastChoice: string) => Promise<void>;
   generateRundown: () => Promise<void>;
   updateRundownSection: (key: keyof RundownData, content: string) => void;
 }
@@ -362,6 +362,24 @@ export const createWorkflowSlice: StateCreator<
         prompt: combinedInput,
       });
 
+      // Check if contrast clarification is needed for CT/MRI studies
+      const studyType = parsedData.studyType?.value?.toLowerCase() || "";
+      const needsContrastClarification =
+        /ct|mri|mra|cta/.test(studyType) &&
+        !/contrast|w\/|w\/o|without|with and without/.test(studyType);
+
+      if (needsContrastClarification) {
+        logEvent("Contrast clarification needed", { studyType });
+        set({
+          parsedInfo: parsedData,
+          contrastClarificationNeeded: {
+            studyType: parsedData.studyType?.value || "",
+          },
+        });
+        setProcess("idle");
+        return; // Wait for user to select contrast option
+      }
+
       // Set parsed info and go directly to submitted stage (skip verification)
       set({ parsedInfo: parsedData });
 
@@ -375,26 +393,28 @@ export const createWorkflowSlice: StateCreator<
     }
   },
 
-  resolveContrastClarification: (contrastChoice: string) =>
-    set((state) => {
-      if (!state.parsedInfo || !state.parsedInfo.studyType || !state.contrastClarificationNeeded)
-        return {};
+  resolveContrastClarification: async (contrastChoice: string) => {
+    const state = get();
+    if (!state.parsedInfo || !state.parsedInfo.studyType || !state.contrastClarificationNeeded)
+      return;
 
-      const newStudyType = `${state.contrastClarificationNeeded.studyType} ${contrastChoice}`;
+    const newStudyType = `${state.contrastClarificationNeeded.studyType} ${contrastChoice}`;
 
-      const newParsedInfo: ParsedInput = {
-        ...state.parsedInfo,
-        studyType: { value: newStudyType },
-      };
+    const newParsedInfo: ParsedInput = {
+      ...state.parsedInfo,
+      studyType: { value: newStudyType },
+    };
 
-      logEvent("Contrast clarification resolved", { newStudyType });
+    logEvent("Contrast clarification resolved", { newStudyType });
 
-      return {
-        parsedInfo: newParsedInfo,
-        contrastClarificationNeeded: null,
-        workflowStage: "verification",
-      };
-    }),
+    set({
+      parsedInfo: newParsedInfo,
+      contrastClarificationNeeded: null,
+    });
+
+    // Call confirmBrief directly to skip verification and generate report
+    await get().confirmBrief();
+  },
 
   updateParsedInfo: (category, newValue, index, field = "value") =>
     set((state) => {
