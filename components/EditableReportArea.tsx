@@ -188,11 +188,11 @@ const EditableReportArea: React.FC = () => {
           </SecondaryButton>
         </div>
       }
-      className="h-full flex flex-col"
-      bodyClassName="p-0 flex-1 flex flex-col min-h-0" // Ensure flex layout for body
+      className="flex flex-col"
+      bodyClassName="p-0 flex flex-col" // Ensure flex layout for body
     >
       {/* Main Editor Area */}
-      <div className="relative flex-1 min-h-0 overflow-hidden">
+      <div className="relative min-h-[200px] max-h-[60vh] overflow-hidden">
         {(isLoading || isRefining) && !rawContent && (
           <div className="absolute inset-0 flex flex-col justify-center items-center bg-transparent z-10">
             <LoadingSpinner className="h-10 w-10 text-(--color-primary)" />
@@ -207,7 +207,7 @@ const EditableReportArea: React.FC = () => {
           suppressContentEditableWarning={true}
           onInput={handleInput}
           data-placeholder="Report content will appear here..."
-          className="glass-input bg-transparent border-none rounded-none report-font w-full h-full p-4 focus:outline-none resize-none text-(--color-text-default) text-sm leading-relaxed overflow-y-auto whitespace-pre-wrap"
+          className="glass-input bg-transparent border-none rounded-none report-font w-full min-h-[200px] max-h-[60vh] p-4 focus:outline-none resize-none text-(--color-text-default) text-sm leading-relaxed overflow-y-auto whitespace-pre-wrap"
           role="textbox"
           aria-multiline="true"
           dangerouslySetInnerHTML={{ __html: highlightedHtml }}
