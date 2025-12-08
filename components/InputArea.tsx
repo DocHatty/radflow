@@ -44,6 +44,21 @@ const InputArea: React.FC<InputAreaProps> = ({ isDisabled, buttonText, placehold
   }, [finalTranscript, userInput, setUserInput, resetTranscript]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Tab key inserts a tab character instead of moving focus
+    if (event.key === "Tab") {
+      event.preventDefault();
+      const target = event.target as HTMLTextAreaElement;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const newValue = userInput.substring(0, start) + "\t" + userInput.substring(end);
+      setUserInput(newValue);
+      // Set cursor position after the tab
+      setTimeout(() => {
+        target.selectionStart = target.selectionEnd = start + 1;
+      }, 0);
+      return;
+    }
+
     if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
       event.preventDefault();
       if (!isDisabled) submitInput();
@@ -80,7 +95,7 @@ const InputArea: React.FC<InputAreaProps> = ({ isDisabled, buttonText, placehold
         placeholder={
           placeholder ||
           (isAiReady
-            ? "Enter modality, clinical indication, history... (Cmd/Ctrl + Enter to Submit)"
+            ? "Paste radiology modality type and any pertinent clinical info available.\n\nPlease do not include any PHI. Be responsible, as this is experimental and uses cloud resources.\n\n(Cmd/Ctrl + Enter to Submit)"
             : "Initializing AI model...")
         }
         className="glass-input w-full bg-transparent border-none h-64 p-4 pr-12 pb-16 rounded-lg focus:outline-none resize-none transition-shadow duration-200 text-(--color-text-default) disabled:opacity-50"

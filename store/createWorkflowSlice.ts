@@ -351,7 +351,7 @@ export const createWorkflowSlice: StateCreator<
   setExamDateInput: (date) => set({ examDateInput: date }),
 
   submitInput: async () => {
-    const { userInput, examDateInput, setProcess, setError } = get();
+    const { userInput, examDateInput, setProcess, setError, confirmBrief } = get();
     if (!userInput.trim()) return;
 
     const combinedInput = `Date of Exam: ${examDateInput}\n\n${userInput}`;
@@ -362,145 +362,11 @@ export const createWorkflowSlice: StateCreator<
         prompt: combinedInput,
       });
 
-      const studyType = parsedData.studyType?.value?.toLowerCase() || "";
-      const needsContrastClarification =
-        /ct|mri|mra|cta/.test(studyType) &&
-        !/contrast|w\/|w\/o|without|with and without/.test(studyType);
+      // Set parsed info and go directly to submitted stage (skip verification)
+      set({ parsedInfo: parsedData });
 
-      if (needsContrastClarification) {
-        logEvent("Contrast clarification needed", { studyType });
-        set({
-          parsedInfo: parsedData,
-          contrastClarificationNeeded: {
-            studyType: parsedData.studyType?.value || "",
-          },
-        });
-      } else {
-        set({ parsedInfo: parsedData, workflowStage: "verification" });
-      }
-
-      // --- PRE-FETCH GUIDANCE IN BACKGROUND (PARALLEL) ---
-      // Start guidance generation early while user reviews the verification screen
-      const clinicalBrief = constructBriefFromParsedInput(parsedData);
-
-      // Create new AbortController for this batch of requests (cancels any previous)
-      const { controller: abortController, id: abortId } = abortManager.create("guidance");
-      const signal = abortController.signal;
-
-      logEvent("Starting PARALLEL pre-fetch of guidance...");
-      set({
-        isFetchingGuidance: true,
-        guidanceContent: "",
-        rundownData: initializeRundownData(),
-        isGeneratingRundown: true,
-      });
-
-      // Mark all rundown sections as loading
-      set((state) => {
-        if (!state.rundownData) return state;
-        const updatedData = { ...state.rundownData };
-        Object.keys(updatedData).forEach((key) => {
-          updatedData[key as keyof RundownData].isLoading = true;
-        });
-        return { rundownData: updatedData };
-      });
-
-      const contextPrompt = `Study Type: ${parsedData.studyType?.value || "Unknown"}\nClinical Context: ${clinicalBrief}`;
-
-      // PARALLEL: Fire appropriateness and all rundown sections simultaneously
-      const appropriatenessPromise = runAiTask<{
-        text: string;
-        sources: any[];
-      }>("getAppropriateness", {
-        prompt: clinicalBrief,
-        signal,
-      })
-        .then((result) => {
-          if (!signal.aborted) {
-            set({
-              guidanceContent: result.text,
-              guidanceSources: result.sources,
-            });
-          }
-        })
-        .catch((error) => {
-          // Ignore abort errors - they're expected when navigating away
-          if (error.name !== "AbortError") {
-            logEvent("Appropriateness fetch failed", { error: error.message });
-          }
-        });
-
-      // Fire all rundown sections in parallel
-      const rundownPromise = generateRundownParallel(
-        contextPrompt,
-        (key, content) => {
-          if (!signal.aborted) {
-            set((state) => {
-              if (!state.rundownData) return state;
-              const safeContent = content || "";
-              return {
-                rundownData: {
-                  ...state.rundownData,
-                  [key]: {
-                    ...state.rundownData[key],
-                    content: safeContent,
-                    isLoading: false,
-                    error: safeContent.startsWith("Error:") ? safeContent : undefined,
-                  },
-                },
-              };
-            });
-          }
-        },
-        signal
-      );
-
-      // Wait for both to complete with proper error handling
-      Promise.allSettled([appropriatenessPromise, rundownPromise]).then((results) => {
-        // Clean up the abort controller
-        abortManager.cleanup(abortId);
-
-        if (!signal.aborted) {
-          set({ isFetchingGuidance: false, isGeneratingRundown: false });
-          logEvent("Parallel guidance pre-fetch complete");
-
-          // Log any failures for debugging
-          results.forEach((result, index) => {
-            if (result.status === "rejected" && result.reason?.name !== "AbortError") {
-              logEvent(`Pre-fetch task ${index} failed`, {
-                error: result.reason?.message,
-              });
-            }
-          });
-        }
-      });
-
-      // Also pre-fetch guideline selection
-      const guidelineKnowledgeBase = FOLLOW_UP_GUIDELINES.map(
-        (g) => `Topic: ${g.topic}\nSummary: ${g.summary}`
-      ).join("\n\n");
-
-      runAiTask<{ relevantGuidelineTopics: string[] }>("selectGuidelines", {
-        prompt: `**Clinical Brief:**\n${clinicalBrief}\n\n**Available Guidelines:**\n${guidelineKnowledgeBase}`,
-        signal,
-      })
-        .then((result) => {
-          if (!signal.aborted) {
-            const relevantTopics = new Set(result.relevantGuidelineTopics);
-            const activeGuidelines = FOLLOW_UP_GUIDELINES.filter((g) =>
-              relevantTopics.has(g.topic)
-            );
-            set({ activeGuidelines });
-            logEvent("Pre-fetched guidelines ready", {
-              selected: activeGuidelines.map((g) => g.topic),
-            });
-          }
-        })
-        .catch((error) => {
-          if (error.name !== "AbortError") {
-            logEvent("Pre-fetch guidelines failed", { error: error.message });
-          }
-        });
+      // Call confirmBrief directly to skip verification and generate report
+      await confirmBrief();
     } catch (e) {
       const err = e as Error;
       setError({ message: err.message, context: "Categorizing Input" });
