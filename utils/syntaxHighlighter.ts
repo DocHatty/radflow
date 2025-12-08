@@ -1,7 +1,4 @@
-// utils/syntaxHighlighter.ts
-// FIX: Implement and export the 'applySyntaxHighlighting' function to resolve the import error.
-// This implementation safely highlights medical terms by traversing the DOM and replacing only text nodes,
-// preserving the HTML structure.
+// Syntax highlighter for medical terms in report text
 import { medicalTerms } from "../lib/medicalTerms";
 
 const termsRegex = new RegExp(`\\b(${Array.from(medicalTerms).join("|")})\\b`, "gi");

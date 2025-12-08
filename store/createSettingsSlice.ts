@@ -78,8 +78,7 @@ export const createSettingsSlice: StateCreator<
             parsed.providers.unshift(defaultProvider);
           }
 
-          // CRITICAL FIX: Force update specific prompts that have been changed in the codebase
-          // This ensures users get the new "Senior Radiologist" logic without clearing all settings.
+          // Force update prompts to latest defaults (ensures users get updated prompt logic)
           if (parsed.prompts) {
             parsed.prompts.GUIDANCE_SYSTEM_INSTRUCTION =
               DEFAULT_SETTINGS.prompts.GUIDANCE_SYSTEM_INSTRUCTION;
@@ -87,7 +86,6 @@ export const createSettingsSlice: StateCreator<
               DEFAULT_SETTINGS.prompts.APPROPRIATENESS_SYSTEM_INSTRUCTION;
             parsed.prompts.DETAILED_GUIDANCE_SYSTEM_INSTRUCTION =
               DEFAULT_SETTINGS.prompts.DETAILED_GUIDANCE_SYSTEM_INSTRUCTION;
-            // Force update ALL rundown prompts to use new concise format
             parsed.prompts.RUNDOWN_APPROPRIATENESS_INSTRUCTION =
               DEFAULT_SETTINGS.prompts.RUNDOWN_APPROPRIATENESS_INSTRUCTION;
             parsed.prompts.RUNDOWN_MOST_LIKELY_INSTRUCTION =
@@ -108,7 +106,7 @@ export const createSettingsSlice: StateCreator<
               DEFAULT_SETTINGS.prompts.RUNDOWN_BOTTOM_LINE_INSTRUCTION;
           }
 
-          // CRITICAL FIX: Merge new model assignments (e.g. getAppropriateness)
+          // Merge new model assignments from defaults
           if (parsed.modelAssignments) {
             Object.keys(parsed.modelAssignments).forEach((providerKey) => {
               const assignments = parsed.modelAssignments[providerKey];

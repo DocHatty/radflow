@@ -111,7 +111,6 @@ const promptGroups = [
       "IMPRESSION_SYNTHESIZER_SYSTEM_INSTRUCTION",
     ] as PromptKey[],
   },
-  // FIX: Add missing prompt key to group
   {
     title: "Quality Assurance & Review",
     keys: [
@@ -734,7 +733,6 @@ const AI_TASK_DESCRIPTIONS: Record<AiTaskType, { title: string; description: str
     title: "Q/A Chat",
     description: "Model used for answering follow-up questions in the final review panel.",
   },
-  // FIX: Add missing AI task description
   selectGuidelines: {
     title: "Select Clinical Guidelines",
     description:
@@ -851,10 +849,6 @@ const ModelsTab: React.FC = () => {
 
   const handleTestBackground = async () => {
     try {
-      // We can't easily call the service here without importing it, but we can use a simple alert for now
-      // or better, trigger a re-render in App.tsx via store?
-      // Actually, let's just notify the user to check the main screen.
-      // Or, we can import the service.
       const { generateImpressionistBackground } = await import("../services/geminiService");
       const apiKey = activeProvider?.apiKey || "";
       if (!apiKey) {
@@ -864,8 +858,7 @@ const ModelsTab: React.FC = () => {
       alert("Starting test generation... Check console for details.");
       const url = await generateImpressionistBackground(apiKey);
       if (url) {
-        alert("Success! Image generated. (See console or main background if updated)");
-        // Ideally we'd update the store, but let's just verify it works.
+        alert("Success! Image generated.");
       }
     } catch (e) {
       alert(`Generation Failed: ${e instanceof Error ? e.message : e}`);
@@ -973,23 +966,14 @@ const ModelsTab: React.FC = () => {
 type Tab = "prompts" | "providers" | "models" | "knowledge";
 
 const SettingsPanel: React.FC = () => {
-  const {
-    isSettingsPanelOpen,
-    toggleSettingsPanel,
-    settings,
-    updateSettings,
-    resetSettings,
-    setActiveProviderId,
-    updateModelAssignment,
-  } = useWorkflowStore((state) => ({
-    isSettingsPanelOpen: state.isSettingsPanelOpen,
-    toggleSettingsPanel: state.toggleSettingsPanel,
-    settings: state.settings,
-    updateSettings: state.updateSettings,
-    resetSettings: state.resetSettings,
-    setActiveProviderId: state.setActiveProviderId,
-    updateModelAssignment: state.updateModelAssignment,
-  }));
+  const { isSettingsPanelOpen, toggleSettingsPanel, settings, updateSettings, resetSettings } =
+    useWorkflowStore((state) => ({
+      isSettingsPanelOpen: state.isSettingsPanelOpen,
+      toggleSettingsPanel: state.toggleSettingsPanel,
+      settings: state.settings,
+      updateSettings: state.updateSettings,
+      resetSettings: state.resetSettings,
+    }));
 
   const [activeTab, setActiveTab] = useState<Tab>("models");
   const [localSettings, setLocalSettings] = useState<Settings | null>(settings);
