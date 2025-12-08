@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useWorkflowStore } from '../App';
+import { useWorkflowStore } from "../App";
 import ActionButton from "./ActionButton";
 import SecondaryButton from "./SecondaryButton";
 import Accordion from "./Accordion";
@@ -7,7 +7,6 @@ import { XIcon, TrashIcon, InfoIcon, EyeIcon, EyeSlashIcon } from "./Icons";
 import {
   Settings,
   PromptKey,
-  ApiProvider,
   ProviderId,
   FetchedModel,
   ModelAssignment,
@@ -19,13 +18,17 @@ import LoadingSpinner from "./LoadingSpinner";
 
 // --- PROMPTS TAB ---
 
-const promptDescriptions: Record<PromptKey, string> = {
+const promptDescriptions: Partial<Record<PromptKey, string>> = {
   CATEGORIZATION_SYSTEM_INSTRUCTION:
     "Instructs the AI on how to parse raw clinical text into a structured JSON format. High precision is critical here.",
   INITIAL_DRAFT_SYSTEM_INSTRUCTION:
     "Guides the AI in creating the first report draft by combining a base template with the patient's clinical brief.",
   GUIDANCE_SYSTEM_INSTRUCTION:
     "Defines how the AI provides clinical guidance, forcing it to rely solely on grounded search results for appropriateness checks.",
+  APPROPRIATENESS_SYSTEM_INSTRUCTION:
+    "Instructs the AI on how to assess study appropriateness based on ACR criteria and clinical context.",
+  DETAILED_GUIDANCE_SYSTEM_INSTRUCTION:
+    "Provides detailed clinical guidance for specific findings and recommendations.",
   REFINE_SYSTEM_INSTRUCTION:
     'The prompt used when you click the "Refine" button. It tells the AI to improve grammar, clarity, and conciseness.',
   DICTATION_INTEGRATION_SYSTEM_INSTRUCTION:
@@ -36,13 +39,25 @@ const promptDescriptions: Record<PromptKey, string> = {
     "Used when applying recommendations from the final review. Guides the AI to edit the report based on a list of instructions.",
   DIFFERENTIAL_GENERATOR_SYSTEM_INSTRUCTION:
     "Defines how the AI generates a list of potential differential diagnoses based only on the report findings.",
+  DIFFERENTIAL_REFINER_SYSTEM_INSTRUCTION:
+    "Refines the differential diagnosis list based on additional findings or user input.",
   IMPRESSION_SYNTHESIZER_SYSTEM_INSTRUCTION:
     'Guides the AI in writing the final "Impression" section by synthesizing the brief, findings, and selected differentials.',
   QUERY_SYSTEM_INSTRUCTION:
     "The prompt for the Q/A chat, instructing the AI to answer questions based on the clinical context and report.",
-  // FIX: Add missing prompt description
   GUIDELINE_SELECTION_SYSTEM_INSTRUCTION:
     "Instructs the AI on how to select relevant clinical guidelines from a list based on the provided clinical brief.",
+  RUNDOWN_MOST_LIKELY_INSTRUCTION:
+    "Generates the most likely diagnosis section of the real-world rundown.",
+  RUNDOWN_TOP_FACTS_INSTRUCTION: "Provides key clinical facts relevant to the case.",
+  RUNDOWN_WHAT_TO_LOOK_FOR_INSTRUCTION: "Highlights specific imaging findings to look for.",
+  RUNDOWN_PITFALLS_INSTRUCTION: "Identifies common diagnostic pitfalls to avoid.",
+  RUNDOWN_SEARCH_PATTERN_INSTRUCTION: "Suggests a systematic search pattern for image review.",
+  RUNDOWN_PERTINENT_NEGATIVES_INSTRUCTION: "Lists pertinent negative findings to document.",
+  RUNDOWN_CLASSIC_SIGNS_INSTRUCTION:
+    "Describes classic radiological signs associated with the case.",
+  RUNDOWN_BOTTOM_LINE_INSTRUCTION: "Provides the bottom-line clinical takeaway.",
+  RUNDOWN_APPROPRIATENESS_INSTRUCTION: "Assesses study appropriateness for the rundown section.",
 };
 
 const promptGroups = [
@@ -91,9 +106,7 @@ const PromptsTab: React.FC<{
               <label className="block text-sm font-bold text-(--color-text-bright) mb-1 uppercase tracking-wider">
                 {key.replace(/_/g, " ").replace("SYSTEM INSTRUCTION", "")}
               </label>
-              <p className="text-xs text-(--color-text-muted) mb-2">
-                {promptDescriptions[key]}
-              </p>
+              <p className="text-xs text-(--color-text-muted) mb-2">{promptDescriptions[key]}</p>
               <textarea
                 value={settings.prompts[key]}
                 onChange={(e) => onChange(key, e.target.value)}
@@ -128,24 +141,21 @@ const PasswordInput: React.FC<{
         onClick={() => setIsVisible(!isVisible)}
         className="absolute inset-y-0 right-0 px-3 flex items-center text-(--color-text-muted) hover:text-white"
       >
-        {isVisible ? (
-          <EyeSlashIcon className="h-5 w-5" />
-        ) : (
-          <EyeIcon className="h-5 w-5" />
-        )}
+        {isVisible ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
       </button>
     </div>
   );
 };
 
 const ProvidersTab: React.FC = () => {
-  const { settings, addProvider, updateProvider, removeProvider, setActiveProviderId } = useWorkflowStore((state) => ({
-    settings: state.settings!,
-    addProvider: state.addProvider,
-    updateProvider: state.updateProvider,
-    removeProvider: state.removeProvider,
-    setActiveProviderId: state.setActiveProviderId,
-  }));
+  const { settings, addProvider, updateProvider, removeProvider, setActiveProviderId } =
+    useWorkflowStore((state) => ({
+      settings: state.settings!,
+      addProvider: state.addProvider,
+      updateProvider: state.updateProvider,
+      removeProvider: state.removeProvider,
+      setActiveProviderId: state.setActiveProviderId,
+    }));
 
   const [showAddProvider, setShowAddProvider] = useState(false);
   const [newProvider, setNewProvider] = useState<{
@@ -162,10 +172,26 @@ const ProvidersTab: React.FC = () => {
 
   const providerInfo: Record<ProviderId, { name: string; url: string; defaultBaseUrl?: string }> = {
     google: { name: "Google Gemini", url: "https://aistudio.google.com/apikey" },
-    openai: { name: "OpenAI", url: "https://platform.openai.com/api-keys", defaultBaseUrl: "https://api.openai.com/v1" },
-    anthropic: { name: "Anthropic Claude", url: "https://console.anthropic.com/", defaultBaseUrl: "https://api.anthropic.com/v1" },
-    openrouter: { name: "OpenRouter", url: "https://openrouter.ai/keys", defaultBaseUrl: "https://openrouter.ai/api/v1" },
-    perplexity: { name: "Perplexity", url: "https://www.perplexity.ai/settings/api", defaultBaseUrl: "https://api.perplexity.ai" },
+    openai: {
+      name: "OpenAI",
+      url: "https://platform.openai.com/api-keys",
+      defaultBaseUrl: "https://api.openai.com/v1",
+    },
+    anthropic: {
+      name: "Anthropic Claude",
+      url: "https://console.anthropic.com/",
+      defaultBaseUrl: "https://api.anthropic.com/v1",
+    },
+    openrouter: {
+      name: "OpenRouter",
+      url: "https://openrouter.ai/keys",
+      defaultBaseUrl: "https://openrouter.ai/api/v1",
+    },
+    perplexity: {
+      name: "Perplexity",
+      url: "https://www.perplexity.ai/settings/api",
+      defaultBaseUrl: "https://api.perplexity.ai",
+    },
   };
 
   const handleAddProvider = () => {
@@ -173,16 +199,17 @@ const ProvidersTab: React.FC = () => {
       alert("Please enter an API key");
       return;
     }
-    
+
     const providerName = newProvider.name.trim() || providerInfo[newProvider.providerId].name;
-    
+
     addProvider({
       providerId: newProvider.providerId,
       name: providerName,
       apiKey: newProvider.apiKey.trim(),
-      baseUrl: newProvider.baseUrl.trim() || providerInfo[newProvider.providerId].defaultBaseUrl || "",
+      baseUrl:
+        newProvider.baseUrl.trim() || providerInfo[newProvider.providerId].defaultBaseUrl || "",
     });
-    
+
     setShowAddProvider(false);
     setNewProvider({
       providerId: "openai",
@@ -197,8 +224,8 @@ const ProvidersTab: React.FC = () => {
       <div className="p-3 bg-(--color-warning-bg)/80 border border-(--color-warning-border) text-xs text-(--color-warning-text) rounded-md flex">
         <InfoIcon className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
         <span>
-          Your API keys are stored securely in your browser's local storage and
-          only sent to the respective provider's API.
+          Your API keys are stored securely in your browser's local storage and only sent to the
+          respective provider's API.
         </span>
       </div>
 
@@ -231,9 +258,7 @@ const ProvidersTab: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-(--color-text-muted)">
-                    {info.name} Provider
-                  </p>
+                  <p className="text-xs text-(--color-text-muted)">{info.name} Provider</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {!isActive && (
@@ -265,9 +290,7 @@ const ProvidersTab: React.FC = () => {
                 </label>
                 <PasswordInput
                   value={provider.apiKey}
-                  onChange={(e) =>
-                    updateProvider({ ...provider, apiKey: e.target.value })
-                  }
+                  onChange={(e) => updateProvider({ ...provider, apiKey: e.target.value })}
                 />
               </div>
 
@@ -279,9 +302,7 @@ const ProvidersTab: React.FC = () => {
                   <input
                     type="text"
                     value={provider.baseUrl}
-                    onChange={(e) =>
-                      updateProvider({ ...provider, baseUrl: e.target.value })
-                    }
+                    onChange={(e) => updateProvider({ ...provider, baseUrl: e.target.value })}
                     className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) font-mono focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
                     placeholder={info.defaultBaseUrl}
                   />
@@ -437,10 +458,7 @@ const ProvidersTab: React.FC = () => {
 
 // --- MODELS TAB ---
 
-const AI_TASK_DESCRIPTIONS: Record<
-  AiTaskType,
-  { title: string; description: string }
-> = {
+const AI_TASK_DESCRIPTIONS: Record<AiTaskType, { title: string; description: string }> = {
   categorize: {
     title: "Clinical Input Categorization",
     description:
@@ -458,13 +476,11 @@ const AI_TASK_DESCRIPTIONS: Record<
   },
   refineReport: {
     title: "Refine Report",
-    description:
-      "Model for improving the clarity, grammar, and conciseness of the report draft.",
+    description: "Model for improving the clarity, grammar, and conciseness of the report draft.",
   },
   integrateDictation: {
     title: "Integrate Dictation",
-    description:
-      "Model for intelligently merging dictated text into the existing report.",
+    description: "Model for intelligently merging dictated text into the existing report.",
   },
   finalReview: {
     title: "Final QA Review",
@@ -473,8 +489,7 @@ const AI_TASK_DESCRIPTIONS: Record<
   },
   applyRecommendations: {
     title: "Apply QA Recommendations",
-    description:
-      "Model for editing the report based on the suggestions from the final QA review.",
+    description: "Model for editing the report based on the suggestions from the final QA review.",
   },
   generateDifferentials: {
     title: "Generate Differentials",
@@ -488,8 +503,7 @@ const AI_TASK_DESCRIPTIONS: Record<
   },
   answerQuery: {
     title: "Q/A Chat",
-    description:
-      "Model used for answering follow-up questions in the final review panel.",
+    description: "Model used for answering follow-up questions in the final review panel.",
   },
   // FIX: Add missing AI task description
   selectGuidelines: {
@@ -554,27 +568,15 @@ const AI_TASK_DESCRIPTIONS: Record<
 const ModelsTab: React.FC<{
   settings: Settings;
   onActiveProviderChange: (id: string) => void;
-  onModelChange: (
-    providerId: string,
-    assignments: Partial<ModelAssignment>,
-  ) => void;
+  onModelChange: (providerId: string, assignments: Partial<ModelAssignment>) => void;
 }> = ({ settings, onActiveProviderChange, onModelChange }) => {
-  const [modelLists, setModelLists] = useState<Record<string, FetchedModel[]>>(
-    {},
-  );
-  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>(
-    {},
-  );
-  const [errorStates, setErrorStates] = useState<Record<string, string | null>>(
-    {},
-  );
+  const [modelLists, setModelLists] = useState<Record<string, FetchedModel[]>>({});
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+  const [errorStates, setErrorStates] = useState<Record<string, string | null>>({});
 
-  const activeProvider = settings.providers.find(
-    (p) => p.id === settings.activeProviderId,
-  );
+  const activeProvider = settings.providers.find((p) => p.id === settings.activeProviderId);
   const currentAssignments =
-    settings.modelAssignments[settings.activeProviderId] ||
-    ({} as ModelAssignment);
+    settings.modelAssignments[settings.activeProviderId] || ({} as ModelAssignment);
 
   const handleFetchModels = useCallback(async () => {
     if (!activeProvider) return;
@@ -588,8 +590,7 @@ const ModelsTab: React.FC<{
         count: models.length,
       });
     } catch (e) {
-      const error =
-        e instanceof Error ? e.message : "An unknown error occurred";
+      const error = e instanceof Error ? e.message : "An unknown error occurred";
       setErrorStates((prev) => ({ ...prev, [activeProvider.id]: error }));
       logError("Failed to fetch models", {
         provider: activeProvider.name,
@@ -610,13 +611,7 @@ const ModelsTab: React.FC<{
     ) {
       handleFetchModels();
     }
-  }, [
-    activeProvider,
-    handleFetchModels,
-    modelLists,
-    loadingStates,
-    errorStates,
-  ]);
+  }, [activeProvider, handleFetchModels, modelLists, loadingStates, errorStates]);
 
   const handleModelInputChange = (task: AiTaskType, value: string) => {
     onModelChange(settings.activeProviderId, { [task]: value });
@@ -628,9 +623,7 @@ const ModelsTab: React.FC<{
       // or better, trigger a re-render in App.tsx via store?
       // Actually, let's just notify the user to check the main screen.
       // Or, we can import the service.
-      const { generateImpressionistBackground } = await import(
-        "../services/geminiService"
-      );
+      const { generateImpressionistBackground } = await import("../services/geminiService");
       const apiKey = activeProvider?.apiKey || "";
       if (!apiKey) {
         alert("Please set an API Key for this provider first.");
@@ -639,9 +632,7 @@ const ModelsTab: React.FC<{
       alert("Starting test generation... Check console for details.");
       const url = await generateImpressionistBackground(apiKey);
       if (url) {
-        alert(
-          "Success! Image generated. (See console or main background if updated)",
-        );
+        alert("Success! Image generated. (See console or main background if updated)");
         // Ideally we'd update the store, but let's just verify it works.
       }
     } catch (e) {
@@ -658,8 +649,7 @@ const ModelsTab: React.FC<{
           Active API Provider
         </label>
         <p className="text-xs text-(--color-text-muted) mb-2">
-          Select which configured provider the application should use for AI
-          tasks.
+          Select which configured provider the application should use for AI tasks.
         </p>
         <select
           value={settings.activeProviderId}
@@ -711,29 +701,21 @@ const ModelsTab: React.FC<{
                 <label className="block text-sm font-semibold text-(--color-text-bright)">
                   {details.title}
                 </label>
-                <p className="text-xs text-(--color-text-muted) mb-1.5">
-                  {details.description}
-                </p>
+                <p className="text-xs text-(--color-text-muted) mb-1.5">{details.description}</p>
                 <div className="flex space-x-2">
                   <input
                     type="text"
                     list={modelDatalistId}
                     value={currentAssignments[task as AiTaskType] || ""}
-                    onChange={(e) =>
-                      handleModelInputChange(task as AiTaskType, e.target.value)
-                    }
+                    onChange={(e) => handleModelInputChange(task as AiTaskType, e.target.value)}
                     className="w-full p-3 text-sm rounded-md bg-(--color-input-bg) border border-(--color-border) focus:border-(--color-primary) text-(--color-text-default) font-mono focus:outline-none focus:ring-1 focus:ring-(--color-primary)"
                     placeholder="Enter model ID"
                   />
-                  {task === "generateImage" &&
-                    activeProvider.providerId === "google" && (
-                      <SecondaryButton
-                        onClick={handleTestBackground}
-                        title="Test Generation"
-                      >
-                        Test
-                      </SecondaryButton>
-                    )}
+                  {task === "generateImage" && activeProvider.providerId === "google" && (
+                    <SecondaryButton onClick={handleTestBackground} title="Test Generation">
+                      Test
+                    </SecondaryButton>
+                  )}
                 </div>
               </div>
             ))}
@@ -800,7 +782,7 @@ const SettingsPanel: React.FC = () => {
   const handleReset = () => {
     if (
       window.confirm(
-        "Are you sure you want to reset all settings to their original defaults? This cannot be undone.",
+        "Are you sure you want to reset all settings to their original defaults? This cannot be undone."
       )
     ) {
       resetSettings();
@@ -812,15 +794,10 @@ const SettingsPanel: React.FC = () => {
 
   return (
     <>
-      <div
-        className="fixed inset-0 bg-black/60 z-40 animate-fade-in"
-        onClick={handleCancel}
-      />
+      <div className="fixed inset-0 bg-black/60 z-40 animate-fade-in" onClick={handleCancel} />
       <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-(--color-base)/80 backdrop-blur-xl shadow-2xl z-50 flex flex-col border-l border-(--color-border) animate-slide-in-right">
         <header className="flex items-center justify-between p-4 border-b border-(--color-secondary)/30 shrink-0">
-          <h2 className="text-lg font-semibold text-(--color-text-bright)">
-            Application Settings
-          </h2>
+          <h2 className="text-lg font-semibold text-(--color-text-bright)">Application Settings</h2>
           <button
             onClick={handleCancel}
             className="p-1 rounded-full hover:bg-(--color-interactive-bg-hover)"
@@ -830,22 +807,13 @@ const SettingsPanel: React.FC = () => {
         </header>
 
         <nav className="flex items-center space-x-2 p-4 border-b border-(--color-secondary)/30 shrink-0">
-          <button
-            onClick={() => setActiveTab("models")}
-            className={tabClasses("models")}
-          >
+          <button onClick={() => setActiveTab("models")} className={tabClasses("models")}>
             AI Models
           </button>
-          <button
-            onClick={() => setActiveTab("providers")}
-            className={tabClasses("providers")}
-          >
+          <button onClick={() => setActiveTab("providers")} className={tabClasses("providers")}>
             Providers
           </button>
-          <button
-            onClick={() => setActiveTab("prompts")}
-            className={tabClasses("prompts")}
-          >
+          <button onClick={() => setActiveTab("prompts")} className={tabClasses("prompts")}>
             System Prompts
           </button>
         </nav>

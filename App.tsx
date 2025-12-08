@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,14 +13,8 @@ import SettingsPanel from "./components/SettingsPanel";
 import DiagnosticsPanel from "./components/DiagnosticsPanel";
 import ApiKeySetupModal from "./components/ApiKeySetupModal";
 
-import {
-  createWorkflowSlice,
-  WorkflowSlice,
-} from "./store/createWorkflowSlice";
-import {
-  createSettingsSlice,
-  SettingsSlice,
-} from "./store/createSettingsSlice";
+import { createWorkflowSlice, WorkflowSlice } from "./store/createWorkflowSlice";
+import { createSettingsSlice, SettingsSlice } from "./store/createSettingsSlice";
 import { logEvent } from "./services/loggingService";
 import { generateImpressionistBackground } from "./services/geminiService";
 
@@ -50,102 +44,9 @@ export const useWorkflowStore = create<WorkflowSlice & SettingsSlice>()(
         differentials: state.differentials,
         selectedDifferentials: state.selectedDifferentials,
       }),
-    },
-  ),
-);
-
-// --- PARTICLE SYSTEM COMPONENT ---
-const ParticleBackground: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
-
-    const particles: {
-      x: number;
-      y: number;
-      radius: number;
-      speed: number;
-      opacity: number;
-    }[] = [];
-    const particleCount = 60; // Slightly reduced count for "orb" feel
-
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        radius: Math.random() * 3 + 1, // Larger "orbs"
-        speed: Math.random() * 0.15 + 0.05, // Slow float
-        opacity: Math.random() * 0.3 + 0.05, // Subtle opacity
-      });
     }
-
-    let animationFrameId: number;
-
-    const animate = () => {
-      ctx.clearRect(0, 0, width, height);
-
-      particles.forEach((p) => {
-        // Move up
-        p.y -= p.speed;
-        // Wrap around
-        if (p.y < -10) {
-          p.y = height + 10;
-          p.x = Math.random() * width;
-        }
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        // Soft white/blue glow
-        const gradient = ctx.createRadialGradient(
-          p.x,
-          p.y,
-          0,
-          p.x,
-          p.y,
-          p.radius,
-        );
-        gradient.addColorStop(0, `rgba(255, 255, 255, ${p.opacity})`);
-        gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
-        ctx.fillStyle = gradient;
-        ctx.fill();
-      });
-
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    const handleResize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 z-[-1] pointer-events-none"
-    />
-  );
-};
+  )
+);
 
 // --- DYNAMIC BACKGROUND GENERATOR ---
 import { fetchModels } from "./services/modelFetcherService";
@@ -164,24 +65,21 @@ const DynamicBackground: React.FC = () => {
     }
   });
   const [animationDuration, setAnimationDuration] = useState("60s");
-  const [bgStatus, setBgStatus] = useState<
-    "idle" | "generating" | "success" | "error"
-  >("idle");
+  const [bgStatus, setBgStatus] = useState<"idle" | "generating" | "success" | "error">("idle");
 
-  const { isAiReady, settings, setAvailableModels, availableModels } =
-    useWorkflowStore((state) => ({
+  const { isAiReady, settings, setAvailableModels, availableModels } = useWorkflowStore(
+    (state) => ({
       isAiReady: state.isAiReady,
       settings: state.settings,
       setAvailableModels: state.setAvailableModels,
       availableModels: state.availableModels,
-    }));
+    })
+  );
 
   // Fetch models on init or provider change
   useEffect(() => {
     const fetchAndStoreModels = async () => {
-      const activeProvider = settings?.providers.find(
-        (p) => p.id === settings.activeProviderId,
-      );
+      const activeProvider = settings?.providers.find((p) => p.id === settings.activeProviderId);
       if (activeProvider && activeProvider.providerId === "google") {
         // Only fetch if not already fetched or if we want to ensure freshness (user requested "always ping")
         // User said "always ping at the beginning", so let's do it.
@@ -189,7 +87,7 @@ const DynamicBackground: React.FC = () => {
           const models = await fetchModels(activeProvider);
           setAvailableModels(
             activeProvider.id,
-            models.map((m) => m.id),
+            models.map((m) => m.id)
           );
         } catch (e) {
           console.error("Failed to auto-fetch models on init", e);
@@ -200,7 +98,8 @@ const DynamicBackground: React.FC = () => {
     if (settings?.activeProviderId) {
       fetchAndStoreModels();
     }
-  }, [settings?.activeProviderId]); // Depend on active provider ID
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings?.activeProviderId, setAvailableModels]); // Depend on active provider ID
 
   useEffect(() => {
     // Randomize animation duration between 45s and 85s
@@ -213,9 +112,7 @@ const DynamicBackground: React.FC = () => {
       setBgStatus("generating");
       try {
         // Get API key from store (assuming Google provider is available/active)
-        const activeProvider = settings.providers.find(
-          (p) => p.id === settings.activeProviderId,
-        );
+        const activeProvider = settings.providers.find((p) => p.id === settings.activeProviderId);
         const googleProvider =
           activeProvider?.providerId === "google"
             ? activeProvider
@@ -225,9 +122,7 @@ const DynamicBackground: React.FC = () => {
 
         // Even if no API key, we call the service to get a fallback image
         const providerIdForModels = googleProvider?.id;
-        const modelsList = providerIdForModels
-          ? availableModels?.[providerIdForModels]
-          : undefined;
+        const modelsList = providerIdForModels ? availableModels?.[providerIdForModels] : undefined;
 
         const url = await generateImpressionistBackground(apiKey, modelsList);
         setBgUrl(url);
@@ -246,6 +141,7 @@ const DynamicBackground: React.FC = () => {
 
     // Small delay to ensure provider is fully loaded
     setTimeout(generateBg, 1000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAiReady]); // Re-run if AI becomes ready (which happens after settings load)
 
   return (
@@ -285,25 +181,15 @@ const DynamicBackground: React.FC = () => {
 };
 
 // --- MAIN APP COMPONENT ---
-import { Loader2, Database } from "lucide-react";
-
-// ... (existing imports)
-
-// ... (inside App component)
 function App() {
-  const {
-    workflowStage,
-    init,
-    isInitializing,
-    needsApiKeySetup,
-    completeApiKeySetup,
-  } = useWorkflowStore((state) => ({
-    workflowStage: state.workflowStage,
-    init: state.init,
-    isInitializing: state.isInitializing,
-    needsApiKeySetup: state.needsApiKeySetup,
-    completeApiKeySetup: state.completeApiKeySetup,
-  }));
+  const { workflowStage, init, isInitializing, needsApiKeySetup, completeApiKeySetup } =
+    useWorkflowStore((state) => ({
+      workflowStage: state.workflowStage,
+      init: state.init,
+      isInitializing: state.isInitializing,
+      needsApiKeySetup: state.needsApiKeySetup,
+      completeApiKeySetup: state.completeApiKeySetup,
+    }));
 
   useEffect(() => {
     init();
@@ -405,9 +291,7 @@ function App() {
       </AnimatePresence>
 
       {/* API Key Setup Modal - First Launch */}
-      {needsApiKeySetup && (
-        <ApiKeySetupModal onComplete={completeApiKeySetup} />
-      )}
+      {needsApiKeySetup && <ApiKeySetupModal onComplete={completeApiKeySetup} />}
     </div>
   );
 }

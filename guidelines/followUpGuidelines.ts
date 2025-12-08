@@ -20,10 +20,12 @@ export interface Guideline {
  */
 export const FOLLOW_UP_GUIDELINES: Guideline[] = [
   {
-    topic: 'Incidental Pulmonary Nodule in Adults (Fleischer Society 2017)',
-    keywords: ['pulmonary nodule', 'lung nodule', 'fleischer', 'spn'],
-    summary: 'Guidelines for managing incidental solid and subsolid pulmonary nodules found on CT in patients aged 35 and older. Recommendations are based on nodule size, number, morphology, and patient risk factors for lung cancer.',
-    llmSummary: 'For single solid nodules in adults: a nodule < 6mm requires no follow-up for low-risk patients and an optional 12-month CT for high-risk. A nodule 6-8mm requires a 6-12 month CT. A nodule > 8mm requires a 3-month CT, PET/CT, or biopsy. For subsolid nodules >= 6mm, a 6-12 month CT is needed to confirm persistence.',
+    topic: "Incidental Pulmonary Nodule in Adults (Fleischer Society 2017)",
+    keywords: ["pulmonary nodule", "lung nodule", "fleischer", "spn"],
+    summary:
+      "Guidelines for managing incidental solid and subsolid pulmonary nodules found on CT in patients aged 35 and older. Recommendations are based on nodule size, number, morphology, and patient risk factors for lung cancer.",
+    llmSummary:
+      "For single solid nodules in adults: a nodule < 6mm requires no follow-up for low-risk patients and an optional 12-month CT for high-risk. A nodule 6-8mm requires a 6-12 month CT. A nodule > 8mm requires a 3-month CT, PET/CT, or biopsy. For subsolid nodules >= 6mm, a 6-12 month CT is needed to confirm persistence.",
     details: `
 ### Fleischer Society 2017 Guidelines Summary:
 
@@ -57,13 +59,15 @@ export const FOLLOW_UP_GUIDELINES: Guideline[] = [
 - **Part-Solid Nodule:**
   - **< 6 mm:** No routine follow-up.
   - **>= 6 mm:** CT at 3-6 months. If persistent, and solid component remains < 6 mm, annual CT for 5 years. If solid component grows to >= 6 mm, consider biopsy.
-`
+`,
   },
   {
-    topic: 'Incidental Renal Cysts (Bosniak Classification v2019)',
-    keywords: ['renal cyst', 'kidney cyst', 'bosniak'],
-    summary: 'A system to classify cystic renal masses based on CT and MRI features, predicting their risk of malignancy and guiding management.',
-    llmSummary: 'For renal cysts: Bosniak I and II cysts require no follow-up. Bosniak IIF requires imaging follow-up (e.g., 6-12 months). Bosniak III and IV require urologic consultation for probable surgical intervention.',
+    topic: "Incidental Renal Cysts (Bosniak Classification v2019)",
+    keywords: ["renal cyst", "kidney cyst", "bosniak"],
+    summary:
+      "A system to classify cystic renal masses based on CT and MRI features, predicting their risk of malignancy and guiding management.",
+    llmSummary:
+      "For renal cysts: Bosniak I and II cysts require no follow-up. Bosniak IIF requires imaging follow-up (e.g., 6-12 months). Bosniak III and IV require urologic consultation for probable surgical intervention.",
     details: `
 ### Bosniak Classification v2019 Summary:
 
@@ -72,13 +76,15 @@ export const FOLLOW_UP_GUIDELINES: Guideline[] = [
 - **Bosniak IIF (Minimally Complex, Follow-up):** ~5-10% malignant. Multiple thin septa, minimally thickened wall or septa. Requires imaging follow-up (e.g., CT/MRI at 6, 12, 24 months).
 - **Bosniak III (Indeterminate):** ~50% malignant. Thickened, irregular, or enhancing walls or septa. Requires urologic consultation for probable surgical excision or ablation.
 - **Bosniak IV (Clearly Malignant):** ~90% malignant. Contains enhancing solid components. Requires urologic consultation for surgical excision.
-`
+`,
   },
   {
-    topic: 'Incidental Adrenal Nodules (ACR Incidental Findings Committee 2017)',
-    keywords: ['adrenal nodule', 'adrenal mass', 'adrenal incidentaloma'],
-    summary: 'Recommendations for managing incidental adrenal masses based on size and imaging characteristics on CT and MRI to differentiate benign adenomas from potentially malignant lesions.',
-    llmSummary: 'For incidental adrenal nodules: A nodule <= 10 HU on non-contrast CT is benign and needs no follow-up. If > 10 HU and between 1-4 cm, it is indeterminate and may require a 12-month follow-up. Nodules > 4 cm require surgical consultation.',
+    topic: "Incidental Adrenal Nodules (ACR Incidental Findings Committee 2017)",
+    keywords: ["adrenal nodule", "adrenal mass", "adrenal incidentaloma"],
+    summary:
+      "Recommendations for managing incidental adrenal masses based on size and imaging characteristics on CT and MRI to differentiate benign adenomas from potentially malignant lesions.",
+    llmSummary:
+      "For incidental adrenal nodules: A nodule <= 10 HU on non-contrast CT is benign and needs no follow-up. If > 10 HU and between 1-4 cm, it is indeterminate and may require a 12-month follow-up. Nodules > 4 cm require surgical consultation.",
     details: `
 ### ACR Adrenal Incidentaloma Guidelines Summary:
 
@@ -98,13 +104,15 @@ export const FOLLOW_UP_GUIDELINES: Guideline[] = [
   - **Benign features (as above):** No follow-up.
   - **Indeterminate features:** Consider 12-month imaging follow-up to assess for growth. Biochemical workup for hormonal activity may be needed.
 - **> 4 cm:** Surgical consultation is generally recommended due to increased risk of malignancy, regardless of imaging features.
-`
+`,
   },
   {
-    topic: 'Thyroid Nodules (ACR TI-RADS)',
-    keywords: ['thyroid nodule', 'ti-rads', 'thyroid imaging reporting and data system'],
-    summary: 'A standardized system for risk-stratifying thyroid nodules based on ultrasound features. A point-based system categorizes nodules from TR1 (benign) to TR5 (highly suspicious) to guide FNA biopsy or follow-up.',
-    llmSummary: 'For thyroid nodules based on ultrasound: TR1/TR2 require no FNA. TR3 (mildly suspicious) requires FNA if >= 2.5 cm. TR4 (moderately suspicious) requires FNA if >= 1.5 cm. TR5 (highly suspicious) requires FNA if >= 1.0 cm.',
+    topic: "Thyroid Nodules (ACR TI-RADS)",
+    keywords: ["thyroid nodule", "ti-rads", "thyroid imaging reporting and data system"],
+    summary:
+      "A standardized system for risk-stratifying thyroid nodules based on ultrasound features. A point-based system categorizes nodules from TR1 (benign) to TR5 (highly suspicious) to guide FNA biopsy or follow-up.",
+    llmSummary:
+      "For thyroid nodules based on ultrasound: TR1/TR2 require no FNA. TR3 (mildly suspicious) requires FNA if >= 2.5 cm. TR4 (moderately suspicious) requires FNA if >= 1.5 cm. TR5 (highly suspicious) requires FNA if >= 1.0 cm.",
     details: `
 ### ACR TI-RADS Management Summary:
 
@@ -121,13 +129,15 @@ export const FOLLOW_UP_GUIDELINES: Guideline[] = [
 - **TR5 (Highly Suspicious - >= 7 points):**
   - FNA if >= 1.0 cm.
   - Follow-up if >= 0.5 cm.
-`
+`,
   },
   {
-    topic: 'Liver Lesions in High-Risk Patients (LI-RADS v2018)',
-    keywords: ['liver lesion', 'hepatic lesion', 'hcc', 'li-rads', 'cirrhosis'],
-    summary: 'A system for standardizing the reporting of CT and MRI for patients at risk for hepatocellular carcinoma (HCC), such as those with cirrhosis or chronic hepatitis B.',
-    llmSummary: 'For liver lesions in high-risk patients (cirrhosis): LR-1/LR-2 are benign and require routine surveillance. LR-3 requires 3-6 month follow-up. LR-4 requires <= 3 month follow-up or biopsy. LR-5 is definitely HCC and should be treated. LR-M is malignant but not HCC-specific and requires biopsy.',
+    topic: "Liver Lesions in High-Risk Patients (LI-RADS v2018)",
+    keywords: ["liver lesion", "hepatic lesion", "hcc", "li-rads", "cirrhosis"],
+    summary:
+      "A system for standardizing the reporting of CT and MRI for patients at risk for hepatocellular carcinoma (HCC), such as those with cirrhosis or chronic hepatitis B.",
+    llmSummary:
+      "For liver lesions in high-risk patients (cirrhosis): LR-1/LR-2 are benign and require routine surveillance. LR-3 requires 3-6 month follow-up. LR-4 requires <= 3 month follow-up or biopsy. LR-5 is definitely HCC and should be treated. LR-M is malignant but not HCC-specific and requires biopsy.",
     details: `
 ### LI-RADS Management Summary (for patients at risk for HCC):
 
@@ -138,13 +148,15 @@ export const FOLLOW_UP_GUIDELINES: Guideline[] = [
 - **LR-5 (Definitely HCC):** Treat as HCC. No biopsy needed.
 - **LR-M (Probably or Definitely Malignant, not specific for HCC):** Multidisciplinary discussion and likely biopsy.
 - **LR-TIV (Tumor in Vein):** Treat as HCC.
-`
+`,
   },
   {
-    topic: 'Incidental Pancreatic Cysts (ACR White Paper 2017)',
-    keywords: ['pancreatic cyst', 'ipmn', 'pancreas cyst'],
-    summary: 'Guidelines for managing incidental pancreatic cysts found on CT or MRI, balancing the risk of malignancy with the risks of surveillance and intervention.',
-    llmSummary: 'For incidental pancreatic cysts: cysts with high-risk stigmata (jaundice, enhancing solid component, MPD >= 10mm) require surgical evaluation. Cysts with worrisome features (size >= 3cm, thick walls, MPD 5-9mm) require EUS. Cysts without these features are followed with MRI based on size.',
+    topic: "Incidental Pancreatic Cysts (ACR White Paper 2017)",
+    keywords: ["pancreatic cyst", "ipmn", "pancreas cyst"],
+    summary:
+      "Guidelines for managing incidental pancreatic cysts found on CT or MRI, balancing the risk of malignancy with the risks of surveillance and intervention.",
+    llmSummary:
+      "For incidental pancreatic cysts: cysts with high-risk stigmata (jaundice, enhancing solid component, MPD >= 10mm) require surgical evaluation. Cysts with worrisome features (size >= 3cm, thick walls, MPD 5-9mm) require EUS. Cysts without these features are followed with MRI based on size.",
     details: `
 ### Management of Incidental Pancreatic Cysts in Asymptomatic Patients:
 
@@ -164,6 +176,6 @@ export const FOLLOW_UP_GUIDELINES: Guideline[] = [
 - **< 1.5 cm:** MRI in 2 years. If stable, lengthen interval.
 - **1.5 to 2.4 cm:** MRI annually for 2 years, then lengthen interval if stable.
 - **2.5 to 2.9 cm:** MRI in 6-12 months, then alternate MRI/EUS annually.
-`
+`,
   },
 ];

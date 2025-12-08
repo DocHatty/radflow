@@ -1,4 +1,4 @@
-import { useWorkflowStore } from '../App';
+import { useWorkflowStore } from "../App";
 
 /**
  * Logs a standard event to the console and the diagnostics panel.
@@ -6,8 +6,8 @@ import { useWorkflowStore } from '../App';
  * @param data Optional additional data to log.
  */
 export const logEvent = (eventName: string, data?: Record<string, any>): void => {
-    console.log(`[EVENT] ${eventName}`, data || '');
-    useWorkflowStore.getState().addDiagnostic('log', eventName, data);
+  console.log(`[EVENT] ${eventName}`, data || "");
+  useWorkflowStore.getState().addDiagnostic("log", eventName, data);
 };
 
 /**
@@ -16,6 +16,6 @@ export const logEvent = (eventName: string, data?: Record<string, any>): void =>
  * @param errorData The error object or a data object containing error info.
  */
 export const logError = (context: string, errorData: Record<string, any>): void => {
-    console.error(`[ERROR] ${context}:`, errorData);
-    useWorkflowStore.getState().addDiagnostic('error', context, errorData);
+  console.error(`[ERROR] ${context}:`, errorData);
+  useWorkflowStore.getState().addDiagnostic("error", context, errorData);
 };

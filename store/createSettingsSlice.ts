@@ -1,12 +1,7 @@
 import { StateCreator } from "zustand";
 import { logEvent, logError } from "../services/loggingService";
 import { DEFAULT_SETTINGS } from "../settings/defaults";
-import type {
-  Settings,
-  ApiProvider,
-  ModelAssignment,
-  AiTaskType,
-} from "../types";
+import type { Settings, ApiProvider, ModelAssignment, AiTaskType } from "../types";
 import { WorkflowSlice } from "./createWorkflowSlice";
 
 const SETTINGS_STORAGE_KEY = "radflow-settings";
@@ -34,10 +29,7 @@ export interface SettingsSlice {
   updateProvider: (provider: ApiProvider) => void;
   removeProvider: (providerId: string) => void;
   setActiveProviderId: (providerId: string) => void;
-  updateModelAssignment: (
-    providerId: string,
-    assignments: Partial<ModelAssignment>,
-  ) => void;
+  updateModelAssignment: (providerId: string, assignments: Partial<ModelAssignment>) => void;
 }
 
 // --- SLICE CREATOR FUNCTION ---
@@ -81,9 +73,7 @@ export const createSettingsSlice: StateCreator<
         ) {
           // Ensure default provider is always present and non-deletable
           const defaultProvider = DEFAULT_SETTINGS.providers[0];
-          const hasDefault = parsed.providers.some(
-            (p: ApiProvider) => p.id === defaultProvider.id,
-          );
+          const hasDefault = parsed.providers.some((p: ApiProvider) => p.id === defaultProvider.id);
           if (!hasDefault) {
             parsed.providers.unshift(defaultProvider);
           }
@@ -123,15 +113,12 @@ export const createSettingsSlice: StateCreator<
             Object.keys(parsed.modelAssignments).forEach((providerKey) => {
               const assignments = parsed.modelAssignments[providerKey];
               const defaultAssignments =
-                DEFAULT_SETTINGS.modelAssignments[
-                DEFAULT_SETTINGS.providers[0].id
-                ];
+                DEFAULT_SETTINGS.modelAssignments[DEFAULT_SETTINGS.providers[0].id];
 
               // Add any missing keys from default assignments
               Object.keys(defaultAssignments).forEach((taskKey) => {
                 if (!assignments[taskKey as AiTaskType]) {
-                  assignments[taskKey as AiTaskType] =
-                    defaultAssignments[taskKey as AiTaskType];
+                  assignments[taskKey as AiTaskType] = defaultAssignments[taskKey as AiTaskType];
                 }
               });
             });
@@ -166,10 +153,7 @@ export const createSettingsSlice: StateCreator<
     // Use requestIdleCallback to defer localStorage writes to avoid blocking UI
     const saveOperation = () => {
       try {
-        localStorage.setItem(
-          SETTINGS_STORAGE_KEY,
-          JSON.stringify(settingsToSave),
-        );
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settingsToSave));
         logEvent("Settings saved to localStorage");
       } catch (error) {
         logError("Failed to save settings to localStorage", { error });
@@ -209,7 +193,7 @@ export const createSettingsSlice: StateCreator<
     // Update the default Google provider with the API key
     const defaultProviderId = DEFAULT_SETTINGS.providers[0].id;
     const updatedProviders = state.settings.providers.map((p) =>
-      p.id === defaultProviderId ? { ...p, apiKey } : p,
+      p.id === defaultProviderId ? { ...p, apiKey } : p
     );
 
     const newSettings = {
@@ -240,9 +224,7 @@ export const createSettingsSlice: StateCreator<
       const newModelAssignments = {
         ...state.settings.modelAssignments,
         [newProvider.id]: {
-          ...DEFAULT_SETTINGS.modelAssignments[
-          DEFAULT_SETTINGS.providers[0].id
-          ],
+          ...DEFAULT_SETTINGS.modelAssignments[DEFAULT_SETTINGS.providers[0].id],
         },
       };
 
@@ -259,7 +241,7 @@ export const createSettingsSlice: StateCreator<
     set((state) => {
       if (!state.settings) return {};
       const newProviders = state.settings.providers.map((p) =>
-        p.id === updatedProvider.id ? updatedProvider : p,
+        p.id === updatedProvider.id ? updatedProvider : p
       );
       const newSettings = { ...state.settings, providers: newProviders };
       get()._saveSettings(newSettings);
@@ -268,15 +250,9 @@ export const createSettingsSlice: StateCreator<
 
   removeProvider: (providerIdToRemove) =>
     set((state) => {
-      if (
-        !state.settings ||
-        providerIdToRemove === DEFAULT_SETTINGS.providers[0].id
-      )
-        return {}; // Prevent deleting default
+      if (!state.settings || providerIdToRemove === DEFAULT_SETTINGS.providers[0].id) return {}; // Prevent deleting default
 
-      const newProviders = state.settings.providers.filter(
-        (p) => p.id !== providerIdToRemove,
-      );
+      const newProviders = state.settings.providers.filter((p) => p.id !== providerIdToRemove);
       const newAssignments = { ...state.settings.modelAssignments };
       delete newAssignments[providerIdToRemove];
 
@@ -311,8 +287,7 @@ export const createSettingsSlice: StateCreator<
       // This ensures we always have a full ModelAssignment object, satisfying the type definition
       const defaultAssignments =
         DEFAULT_SETTINGS.modelAssignments[DEFAULT_SETTINGS.providers[0].id];
-      const existingAssignments =
-        state.settings.modelAssignments[providerId] || defaultAssignments;
+      const existingAssignments = state.settings.modelAssignments[providerId] || defaultAssignments;
 
       const newModelAssignments = {
         ...state.settings.modelAssignments,

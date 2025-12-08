@@ -1,7 +1,7 @@
-import React from 'react';
-import EditableField from './EditableField';
-import { XIcon } from './Icons';
-import { RejectableItem } from '../types';
+import React from "react";
+import EditableField from "./EditableField";
+import { XIcon } from "./Icons";
+import { RejectableItem } from "../types";
 
 interface BriefSectionProps {
   title: string;
@@ -11,22 +11,30 @@ interface BriefSectionProps {
   isRejectable?: boolean;
 }
 
-const BriefSection: React.FC<BriefSectionProps> = ({ title, items, onUpdate, onReject, isRejectable = true }) => {
+const BriefSection: React.FC<BriefSectionProps> = ({
+  title,
+  items,
+  onUpdate,
+  onReject,
+  isRejectable = true,
+}) => {
   if (!items || items.length === 0) {
     return null;
   }
 
   const activeItemsWithOriginalIndex = items
     .map((item, index) => ({ ...item, originalIndex: index }))
-    .filter(item => !item.isRejected);
-    
+    .filter((item) => !item.isRejected);
+
   if (activeItemsWithOriginalIndex.length === 0) {
     return null;
   }
 
   return (
     <div className="mb-4">
-      <h4 className="text-xs font-bold uppercase text-(--color-secondary) tracking-wider mb-2">{title}</h4>
+      <h4 className="text-xs font-bold uppercase text-(--color-secondary) tracking-wider mb-2">
+        {title}
+      </h4>
       <ul className="space-y-1.5 text-sm">
         {activeItemsWithOriginalIndex.map((item) => (
           <li key={item.originalIndex} className="flex items-start justify-between group">

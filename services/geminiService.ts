@@ -33,8 +33,7 @@ The overall composition must feel vibrant, sophisticated, and full of artistic m
 
 // --- Helper Functions ---
 
-const getRandomElement = (arr: string[]) =>
-  arr[Math.floor(Math.random() * arr.length)];
+const getRandomElement = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
 
 const constructPrompt = () => {
   const subject = getRandomElement(SUBJECTS);
@@ -50,10 +49,9 @@ const constructPrompt = () => {
 
 export const generateImpressionistBackground = async (
   apiKey?: string,
-  availableModels?: string[],
+  availableModels?: string[]
 ): Promise<string> => {
   let generatedImage: string | null = null;
-  let lastError: any;
 
   if (apiKey) {
     const ai = new GoogleGenAI({ apiKey });
@@ -100,9 +98,8 @@ export const generateImpressionistBackground = async (
           generatedImage = `data:image/jpeg;base64,${base64Image}`;
           break; // Stop trying models
         }
-      } catch (error) {
-        lastError = error;
-        // Continue to next model
+      } catch {
+        // Continue to next model on failure
       }
     }
   }
@@ -120,8 +117,6 @@ export const generateImpressionistBackground = async (
   ];
 
   const randomFallback =
-    LOCAL_FALLBACK_IMAGES[
-      Math.floor(Math.random() * LOCAL_FALLBACK_IMAGES.length)
-    ];
+    LOCAL_FALLBACK_IMAGES[Math.floor(Math.random() * LOCAL_FALLBACK_IMAGES.length)];
   return randomFallback;
 };

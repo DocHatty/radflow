@@ -4,17 +4,15 @@ import { medicalTerms } from "../lib/medicalTerms";
 
 // Polyfill for browser compatibility
 const SpeechRecognition: SpeechRecognitionStatic | undefined =
-  (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-const SpeechGrammarList: SpeechGrammarListStatic | undefined =
-  (window as any).SpeechGrammarList || (window as any).webkitSpeechGrammarList;
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+const SpeechGrammarListConstructor: SpeechGrammarListStatic | undefined =
+  window.SpeechGrammarList || window.webkitSpeechGrammarList;
 
 export const useSpeechRecognition = () => {
   const [isListening, setIsListening] = useState(false);
   const [finalTranscript, setFinalTranscript] = useState("");
   const [interimTranscript, setInterimTranscript] = useState("");
-  const [micPermission, setMicPermission] = useState<
-    "prompt" | "granted" | "denied"
-  >("prompt");
+  const [micPermission, setMicPermission] = useState<"prompt" | "granted" | "denied">("prompt");
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
@@ -55,9 +53,9 @@ export const useSpeechRecognition = () => {
     recognition.lang = "en-US";
 
     // Add medical terminology grammar hints
-    if (SpeechGrammarList) {
+    if (SpeechGrammarListConstructor) {
       try {
-        const grammarList = new SpeechGrammarList();
+        const grammarList = new SpeechGrammarListConstructor();
         const terms = Array.from(medicalTerms).join(" | ");
         const grammar = `#JSGF V1.0; grammar medical; public <term> = ${terms} ;`;
         grammarList.addFromString(grammar, 1);
@@ -83,9 +81,7 @@ export const useSpeechRecognition = () => {
       }
 
       if (finalChunk.trim()) {
-        setFinalTranscript(
-          (prev) => (prev.trim() ? prev.trim() + " " : "") + finalChunk.trim(),
-        );
+        setFinalTranscript((prev) => (prev.trim() ? prev.trim() + " " : "") + finalChunk.trim());
       }
       setInterimTranscript(currentInterim);
     };

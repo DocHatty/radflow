@@ -1,4 +1,5 @@
 import React, { useMemo, memo } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { WarningIcon, CheckCircleIcon, QuestionMarkCircleIcon } from "./Icons";
 import LoadingSpinner from "./LoadingSpinner";
 import EmptyState from "./EmptyState";
@@ -17,9 +18,7 @@ const parseLineWithEmphasis = (text: string): React.ReactNode => {
     const [, keyPoint, explanation] = colonMatch;
     return (
       <>
-        <span className="font-semibold text-(--color-text-default)">
-          {keyPoint}
-        </span>
+        <span className="font-semibold text-(--color-text-default)">{keyPoint}</span>
         <span className="text-(--color-text-muted)">: {explanation}</span>
       </>
     );
@@ -29,9 +28,7 @@ const parseLineWithEmphasis = (text: string): React.ReactNode => {
     const [, mainText, parenthetical] = parenMatch;
     return (
       <>
-        <span className="font-medium text-(--color-text-default)">
-          {mainText}
-        </span>
+        <span className="font-medium text-(--color-text-default)">{mainText}</span>
         <span className="text-(--color-text-muted)"> ({parenthetical})</span>
       </>
     );
@@ -57,16 +54,16 @@ const formatContent = (content: string): React.ReactNode => {
     .filter((line) => line);
 
   // Check if content is numbered list
-  const isNumberedList = lines.every((line) => /^\d+[\.\)]\s/.test(line));
+  const isNumberedList = lines.every((line) => /^\d+[.)]\s/.test(line));
 
   // Check if content is bullet list
-  const isBulletList = lines.every((line) => /^[•\-\*]\s/.test(line));
+  const isBulletList = lines.every((line) => /^[•\-*]\s/.test(line));
 
   if (isNumberedList) {
     return (
       <ol className="space-y-3">
         {lines.map((line, idx) => {
-          const text = line.replace(/^\d+[\.\)]\s*/, "").trim();
+          const text = line.replace(/^\d+[.)]\s*/, "").trim();
           return (
             <li key={idx} className="flex gap-3 items-start">
               <span className="shrink-0 w-6 h-6 rounded-full bg-(--color-primary)/10 text-(--color-primary) flex items-center justify-center text-xs font-bold">
@@ -86,13 +83,11 @@ const formatContent = (content: string): React.ReactNode => {
     return (
       <ul className="space-y-3">
         {lines.map((line, idx) => {
-          const text = line.replace(/^[•\-\*]\s*/, "").trim();
+          const text = line.replace(/^[•\-*]\s*/, "").trim();
           return (
             <li key={idx} className="flex gap-3 items-start">
               <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-(--color-primary) mt-2" />
-              <span className="text-sm leading-relaxed flex-1">
-                {parseLineWithEmphasis(text)}
-              </span>
+              <span className="text-sm leading-relaxed flex-1">{parseLineWithEmphasis(text)}</span>
             </li>
           );
         })}
@@ -101,23 +96,13 @@ const formatContent = (content: string): React.ReactNode => {
   }
 
   // Default: paragraph
-  return (
-    <div className="text-sm leading-relaxed">
-      {parseLineWithEmphasis(cleanedContent)}
-    </div>
-  );
+  return <div className="text-sm leading-relaxed">{parseLineWithEmphasis(cleanedContent)}</div>;
 };
 
 // Section icons
 const SectionIcons: Record<string, React.ReactNode> = {
   "Most Likely Diagnoses": (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -126,33 +111,13 @@ const SectionIcons: Record<string, React.ReactNode> = {
     </svg>
   ),
   "Top Facts": (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M13 10V3L4 14h7v7l9-11h-7z"
-      />
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
     </svg>
   ),
   "What to Look For": (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-      />
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -161,13 +126,7 @@ const SectionIcons: Record<string, React.ReactNode> = {
     </svg>
   ),
   "Pitfalls & Mimics": (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -176,13 +135,7 @@ const SectionIcons: Record<string, React.ReactNode> = {
     </svg>
   ),
   "Search Pattern": (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -191,13 +144,7 @@ const SectionIcons: Record<string, React.ReactNode> = {
     </svg>
   ),
   "Pertinent Negatives": (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -206,13 +153,7 @@ const SectionIcons: Record<string, React.ReactNode> = {
     </svg>
   ),
   "Classic Signs": (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -223,46 +164,38 @@ const SectionIcons: Record<string, React.ReactNode> = {
 };
 
 // Beautiful section card
-const SectionCard: React.FC<{ section: RundownSection }> = memo(
-  ({ section }) => {
-    if (!section) return null;
-    if (!section.content && !section.isLoading && !section.error) return null;
+const SectionCard: React.FC<{ section: RundownSection }> = memo(({ section }) => {
+  if (!section) return null;
+  if (!section.content && !section.isLoading && !section.error) return null;
 
-    const icon = SectionIcons[section.title];
+  const icon = SectionIcons[section.title];
 
-    return (
-      <div className="bg-(--color-panel-bg) border border-(--color-border) rounded-xl p-5 space-y-4">
-        {/* Header */}
-        <div className="flex items-center gap-2.5">
-          {icon && (
-            <span className="text-(--color-primary) opacity-80">{icon}</span>
-          )}
-          <h3 className="text-xs font-bold text-(--color-primary) uppercase tracking-wider">
-            {section.title}
-          </h3>
-        </div>
-
-        {/* Content */}
-        {section.isLoading ? (
-          <div className="flex items-center gap-3 py-4">
-            <LoadingSpinner className="w-4 h-4 text-(--color-primary)" />
-            <span className="text-sm text-(--color-text-muted)">
-              Loading...
-            </span>
-          </div>
-        ) : section.error ? (
-          <div className="text-sm text-(--color-danger-text) bg-(--color-danger-bg) border border-(--color-danger-border) rounded-lg px-4 py-3">
-            {section.error}
-          </div>
-        ) : section.content ? (
-          <div className="text-(--color-text-default)">
-            {formatContent(section.content)}
-          </div>
-        ) : null}
+  return (
+    <div className="bg-(--color-panel-bg) border border-(--color-border) rounded-xl p-5 space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-2.5">
+        {icon && <span className="text-(--color-primary) opacity-80">{icon}</span>}
+        <h3 className="text-xs font-bold text-(--color-primary) uppercase tracking-wider">
+          {section.title}
+        </h3>
       </div>
-    );
-  },
-);
+
+      {/* Content */}
+      {section.isLoading ? (
+        <div className="flex items-center gap-3 py-4">
+          <LoadingSpinner className="w-4 h-4 text-(--color-primary)" />
+          <span className="text-sm text-(--color-text-muted)">Loading...</span>
+        </div>
+      ) : section.error ? (
+        <div className="text-sm text-(--color-danger-text) bg-(--color-danger-bg) border border-(--color-danger-border) rounded-lg px-4 py-3">
+          {section.error}
+        </div>
+      ) : section.content ? (
+        <div className="text-(--color-text-default)">{formatContent(section.content)}</div>
+      ) : null}
+    </div>
+  );
+});
 
 // Appropriateness badge
 const AppropriatenessBadge: React.FC<{
@@ -274,9 +207,7 @@ const AppropriatenessBadge: React.FC<{
     return (
       <div className="px-5 py-4 rounded-xl border bg-(--color-panel-bg) border-(--color-border) flex items-center gap-3">
         <LoadingSpinner className="w-5 h-5 text-(--color-primary)" />
-        <span className="text-sm text-(--color-text-muted)">
-          Evaluating appropriateness...
-        </span>
+        <span className="text-sm text-(--color-text-muted)">Evaluating appropriateness...</span>
       </div>
     );
   }
@@ -322,96 +253,80 @@ const AppropriatenessBadge: React.FC<{
         <span>{config.title}</span>
       </div>
       {displayReason && (
-        <p className="mt-2 ml-8 text-sm opacity-90 leading-relaxed">
-          {displayReason}
-        </p>
+        <p className="mt-2 ml-8 text-sm opacity-90 leading-relaxed">{displayReason}</p>
       )}
     </div>
   );
 });
 
 // Bottom line special card
-const BottomLineCard: React.FC<{ section: RundownSection }> = memo(
-  ({ section }) => {
-    if (!section) return null;
-    if (!section.content && !section.isLoading) return null;
+const BottomLineCard: React.FC<{ section: RundownSection }> = memo(({ section }) => {
+  if (!section) return null;
+  if (!section.content && !section.isLoading) return null;
 
-    return (
-      <div className="relative">
-        {/* Decorative line */}
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-(--color-primary) rounded-full" />
+  return (
+    <div className="relative">
+      {/* Decorative line */}
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-(--color-primary) rounded-full" />
 
-        <div className="ml-4 bg-(--color-primary)/5 rounded-xl p-5">
-          <div className="flex items-center gap-2.5 mb-3">
-            <svg
-              className="w-4 h-4 text-(--color-primary)"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-              />
-            </svg>
-            <h3 className="text-xs font-bold text-(--color-primary) uppercase tracking-wider">
-              Bottom Line
-            </h3>
-          </div>
-
-          {section.isLoading ? (
-            <div className="flex items-center gap-3">
-              <LoadingSpinner className="w-4 h-4 text-(--color-primary)" />
-              <span className="text-sm text-(--color-text-muted)">
-                Synthesizing...
-              </span>
-            </div>
-          ) : (
-            <p className="text-sm text-(--color-text-default) font-medium leading-relaxed">
-              {section.content}
-            </p>
-          )}
+      <div className="ml-4 bg-(--color-primary)/5 rounded-xl p-5">
+        <div className="flex items-center gap-2.5 mb-3">
+          <svg
+            className="w-4 h-4 text-(--color-primary)"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+            />
+          </svg>
+          <h3 className="text-xs font-bold text-(--color-primary) uppercase tracking-wider">
+            Bottom Line
+          </h3>
         </div>
+
+        {section.isLoading ? (
+          <div className="flex items-center gap-3">
+            <LoadingSpinner className="w-4 h-4 text-(--color-primary)" />
+            <span className="text-sm text-(--color-text-muted)">Synthesizing...</span>
+          </div>
+        ) : (
+          <p className="text-sm text-(--color-text-default) font-medium leading-relaxed">
+            {section.content}
+          </p>
+        )}
       </div>
-    );
-  },
-);
+    </div>
+  );
+});
 
 const ClinicalGuidancePanel: React.FC = () => {
-  const {
-    guidanceContent,
-    rundownData,
-    isGeneratingRundown,
-    isFetchingGuidance,
-    activeProcess,
-  } = useWorkflowStore((state) => ({
-    guidanceContent: state.guidanceContent,
-    rundownData: state.rundownData,
-    isGeneratingRundown: state.isGeneratingRundown,
-    isFetchingGuidance: state.isFetchingGuidance,
-    activeProcess: state.activeProcess,
-  }));
+  // Use useShallow to prevent unnecessary re-renders
+  const { guidanceContent, rundownData, isGeneratingRundown, isFetchingGuidance, activeProcess } =
+    useWorkflowStore(
+      useShallow((state) => ({
+        guidanceContent: state.guidanceContent,
+        rundownData: state.rundownData,
+        isGeneratingRundown: state.isGeneratingRundown,
+        isFetchingGuidance: state.isFetchingGuidance,
+        activeProcess: state.activeProcess,
+      }))
+    );
 
-  const { status, reason } = useMemo(
-    () => parseGuidance(guidanceContent),
-    [guidanceContent],
-  );
+  const { status, reason } = useMemo(() => parseGuidance(guidanceContent), [guidanceContent]);
 
   const isLoading = activeProcess === "generating" || isFetchingGuidance;
 
   const hasRundownContent =
     rundownData &&
-    Object.values(rundownData).some(
-      (section) => section.content || section.isLoading,
-    );
+    Object.values(rundownData).some((section) => section.content || section.isLoading);
 
   const showEmptyState =
-    !guidanceContent &&
-    !hasRundownContent &&
-    !isLoading &&
-    !isGeneratingRundown;
+    !guidanceContent && !hasRundownContent && !isLoading && !isGeneratingRundown;
 
   return (
     <Panel
@@ -433,9 +348,7 @@ const ClinicalGuidancePanel: React.FC = () => {
           {rundownData && (
             <div className="space-y-4">
               {/* Most Likely - if it exists */}
-              {rundownData.mostLikely && (
-                <SectionCard section={rundownData.mostLikely} />
-              )}
+              {rundownData.mostLikely && <SectionCard section={rundownData.mostLikely} />}
 
               {/* Top Facts */}
               <SectionCard section={rundownData.topFacts} />
@@ -457,8 +370,7 @@ const ClinicalGuidancePanel: React.FC = () => {
 
               {/* Bottom Line - Special styling */}
               {rundownData.bottomLine &&
-                (rundownData.bottomLine.content ||
-                  rundownData.bottomLine.isLoading) && (
+                (rundownData.bottomLine.content || rundownData.bottomLine.isLoading) && (
                   <div className="pt-2">
                     <BottomLineCard section={rundownData.bottomLine} />
                   </div>

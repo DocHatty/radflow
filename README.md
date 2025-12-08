@@ -2,12 +2,11 @@
 
 # RADFLOW
 
-*Context-Aware Intelligence | AI Augmented + Streamlined Reporting | High Yield Checklist Manifesto Workflow*
+_Context-Aware Intelligence | AI Augmented + Streamlined Reporting | High Yield Checklist Manifesto Workflow_
 
 ---
 
 <img width="3746" height="1821" alt="image" src="https://github.com/user-attachments/assets/e1dd7c42-974b-4810-8bc8-39027251ed49" />
-
 
 [![License](https://img.shields.io/badge/license-Personal%20%2F%20Research-orange.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
@@ -22,6 +21,7 @@
 **RADFLOW** is the AI-powered cognitive co-pilot for elite radiologists who refuse to compromise on precision, speed, or excellence.
 
 Built on **flexible multi-provider AI architecture** (supporting Google Gemini, OpenAI, Anthropic Claude, OpenRouter, Perplexity, and more), RADFLOW deploys a **sophisticated multi-agent AI system** that works in parallel to provide:
+
 - **Real-time clinical intelligence** across 8 simultaneous guidance streams
 - **Adaptive differential diagnosis** that evolves with your findings
 - **Context-aware orchestration** routing each cognitive task to specialized AI models
@@ -35,9 +35,11 @@ This isn't just software. It's **high-performance AI meeting high-stakes medicin
 ## ✨ Experience the Difference
 
 ### **🧠 Real-World Rundown: AI Clinical Intelligence**
+
 Your attending radiologist's knowledge, instantly available. RADFLOW's groundbreaking **parallel AI architecture** simultaneously generates **8 comprehensive clinical guidance sections** plus a separate appropriateness evaluation in real-time:
+
 - **Most Likely Diagnoses** - Weighted differentials based on imaging findings
-- **Top Facts** - High-yield pearls for rapid decision-making  
+- **Top Facts** - High-yield pearls for rapid decision-making
 - **What to Look For** - Systematic search strategy for the specific case
 - **Pitfalls & Mimics** - Critical don't-miss warnings and lookalikes
 - **Search Pattern** - Optimized workflow checklists
@@ -48,13 +50,17 @@ Your attending radiologist's knowledge, instantly available. RADFLOW's groundbre
 Plus: **ACR Appropriateness Criteria** evaluation with intelligent web grounding—when the AI needs more context, it automatically searches authoritative sources to provide evidence-based guidance.
 
 ### **🎙️ Seamless Voice Dictation**
+
 Native, low-latency speech recognition engineered for radiology workflows. Speak naturally, report effortlessly. Your voice becomes structured findings instantly.
 
 ### **🔍 Intelligent Differential Diagnosis**
+
 Experience AI that **evolves with your case**. RADFLOW generates weighted differential diagnoses in real-time, then intelligently refines them as you add findings—removing outdated possibilities and suggesting new considerations. Get ranked differentials with clinical rationale, imaging features, and next-step recommendations. It's like having a diagnostic reasoning consultant at your fingertips.
 
 ### **✅ Finalize with Confidence**
+
 A comprehensive AI-powered review system ensures excellence:
+
 - **Interactive Q&A** - Chat with the AI about complex cases, ask for clarifications, explore alternative diagnoses
 - **Guideline-Aware Review** - Integrated knowledge base of major radiology guidelines (Fleischer, Bosniak, ACR, LI-RADS) ensures follow-up recommendations meet best practices
 - **Language Refinement** - AI polishes your prose while preserving your medical precision
@@ -63,9 +69,10 @@ A comprehensive AI-powered review system ensures excellence:
 Every report, clinically sound and eloquently presented.
 
 ### **🎨 Digital Impressionism**
+
 A revolutionary ambient workspace powered by **Imagen** (when using Google Gemini provider, dynamically selects the best available version—3.0, 4.0, or newer). Each session generates unique, AI-created medical concept art in the style of master impressionists—dynamic visualizations of neurological landscapes, cardiovascular systems, and cellular structures. Beautiful enough to inspire, subtle enough to prevent distraction during marathon reading sessions.
 
-*Note: Image generation requires a Google Gemini provider with Imagen model support.*
+_Note: Image generation requires a Google Gemini provider with Imagen model support._
 
 ---
 
@@ -74,7 +81,9 @@ A revolutionary ambient workspace powered by **Imagen** (when using Google Gemin
 RADFLOW represents a paradigm shift in how AI assists radiological interpretation. Unlike simple chatbots, RADFLOW implements a **multi-agent orchestration system** with specialized intelligence at every stage:
 
 ### Multi-Provider Support
+
 RADFLOW supports multiple AI providers, giving you the flexibility to choose the best model for each task:
+
 - **Google Gemini** - Advanced multi-modal models with grounding capabilities and Imagen for background generation
 - **OpenAI** - GPT-4 and other models for high-quality text generation
 - **Anthropic Claude** - Claude 3 models with extended context windows
@@ -85,20 +94,26 @@ RADFLOW supports multiple AI providers, giving you the flexibility to choose the
 Each provider can be configured with its own model assignments, allowing you to optimize for cost, speed, or quality on a per-task basis.
 
 ### Parallel Processing Pipeline
+
 When you input a case, RADFLOW's **Real-World Rundown** launches **8 independent AI tasks** that process simultaneously (plus a separate appropriateness evaluation):
+
 - Each task is optimized for a specific cognitive function (differential generation, pitfall detection, search pattern creation, etc.)
 - Responses arrive asynchronously as they complete, keeping you in flow
 - Total guidance generation: **~15-30 seconds** for comprehensive clinical intelligence that would take humans hours to research
 
 ### Intelligent Task Routing
+
 The **AI Orchestrator** analyzes each request and routes it to the optimal model:
+
 - **JSON-structured tasks** (categorization, differentials) → High-precision schema-validated models
 - **Streaming tasks** (report drafting, impression synthesis) → Models optimized for natural language generation
 - **Grounding-enabled tasks** (appropriateness evaluation) → Models with web search capabilities when local knowledge is insufficient (currently Google Gemini only)
 - **Image generation** (ambient backgrounds) → Imagen models (Google Gemini only) with carefully crafted impressionist prompts
 
 ### Context-Aware Intelligence
+
 Unlike isolated AI calls, RADFLOW maintains **semantic context** across the entire workflow:
+
 - Clinical history informs appropriateness evaluation
 - Appropriateness insights guide the Real-World Rundown sections
 - Dictated findings automatically trigger differential refinement
@@ -106,7 +121,9 @@ Unlike isolated AI calls, RADFLOW maintains **semantic context** across the enti
 - Every AI interaction builds on previous understanding
 
 ### Adaptive Learning
+
 The differential diagnosis system demonstrates true **reactive intelligence**:
+
 1. Initial generation based on clinical history and study type
 2. **Continuous monitoring** of your dictated findings
 3. **Automatic refinement** when findings change—removing outdated differentials, adding newly relevant ones
@@ -139,12 +156,14 @@ Before experiencing RADFLOW, ensure you have:
 ### **Installation**
 
 #### **1. Clone the Repository**
+
 ```bash
 git clone https://github.com/yourusername/radflow.git
 cd radflow
 ```
 
 #### **2. Install Dependencies**
+
 ```bash
 npm install
 ```
@@ -152,6 +171,7 @@ npm install
 #### **3. Configure Your API Key**
 
 **Option A:** Create a `.env.local` file in the root directory:
+
 ```env
 # Google Gemini (Default - Recommended for full features)
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -163,11 +183,13 @@ API_KEY=your_api_key_here
 **Option B:** Enter your API key directly in the application's Settings panel after launch.
 
 **Option C:** Add multiple providers in the Settings panel for flexibility:
+
 - Configure different providers for different tasks
 - Switch between providers based on your needs
 - Use custom base URLs for proxies or self-hosted endpoints
 
 #### **4. Launch RADFLOW**
+
 ```bash
 npm run dev
 ```
@@ -180,14 +202,14 @@ Access your workspace at **[http://localhost:5173](http://localhost:5173)**
 
 RADFLOW's **multi-stage AI workflow** orchestrates sophisticated intelligence at every step:
 
-| Stage | What Happens | AI Power at Work |
-|-------|--------------|------------------|
-| **1. Input** | Paste clinical history or use voice dictation | **Smart Categorization AI** extracts structured data: demographics, allergies, medications, labs, prior imaging—organized instantly |
-| **2. Guidance** | Real-World Rundown activates | **8 parallel AI tasks + appropriateness evaluation** simultaneously generate: clinical context, differential diagnoses, search patterns, pitfalls, classic signs, and clinical synthesis |
-| **3. Dictate Findings** | Voice or text entry of imaging observations | **AI monitors your findings** and auto-generates/refines differential diagnoses in real-time as you work |
-| **4. Build Impression** | Select relevant differentials | **Impression Synthesis AI** crafts a cohesive, evidence-based impression integrating your findings and selected diagnoses |
-| **5. Refine & Review** | Interactive AI consultation | **Chat with the AI** about the case, apply **guideline-aware recommendations**, polish language with AI assistance |
-| **6. Finalize** | Quality assurance check | **Final Review AI** validates completeness, consistency, and adherence to best practices before sign-off |
+| Stage                   | What Happens                                  | AI Power at Work                                                                                                                                                                         |
+| ----------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Input**            | Paste clinical history or use voice dictation | **Smart Categorization AI** extracts structured data: demographics, allergies, medications, labs, prior imaging—organized instantly                                                      |
+| **2. Guidance**         | Real-World Rundown activates                  | **8 parallel AI tasks + appropriateness evaluation** simultaneously generate: clinical context, differential diagnoses, search patterns, pitfalls, classic signs, and clinical synthesis |
+| **3. Dictate Findings** | Voice or text entry of imaging observations   | **AI monitors your findings** and auto-generates/refines differential diagnoses in real-time as you work                                                                                 |
+| **4. Build Impression** | Select relevant differentials                 | **Impression Synthesis AI** crafts a cohesive, evidence-based impression integrating your findings and selected diagnoses                                                                |
+| **5. Refine & Review**  | Interactive AI consultation                   | **Chat with the AI** about the case, apply **guideline-aware recommendations**, polish language with AI assistance                                                                       |
+| **6. Finalize**         | Quality assurance check                       | **Final Review AI** validates completeness, consistency, and adherence to best practices before sign-off                                                                                 |
 
 ### The Intelligence Behind the Interface
 
@@ -244,6 +266,7 @@ This project is available for **personal use and research only**. Commercial use
 ## 🌟 Support the Project
 
 If RADFLOW enhances your practice, consider:
+
 - ⭐ Starring this repository
 - 📢 Sharing with colleagues
 - 🐛 Reporting bugs or suggesting features

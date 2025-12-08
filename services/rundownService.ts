@@ -88,7 +88,7 @@ export const initializeRundownData = (): RundownData => {
 export const generateRundownParallel = async (
   clinicalContext: string,
   onSectionUpdate: (key: keyof RundownData, content: string) => void,
-  signal?: AbortSignal,
+  signal?: AbortSignal
 ): Promise<void> => {
   // Create all API calls simultaneously
   const promises = SECTION_CONFIG.map(async (section) => {
@@ -112,8 +112,7 @@ export const generateRundownParallel = async (
       if (error instanceof Error && error.name === "AbortError") {
         throw error;
       }
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       if (!signal?.aborted) {
         onSectionUpdate(section.key, `Error: ${errorMessage}`);
       }

@@ -1,17 +1,12 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+import { useEditableReportState } from "../hooks/useWorkflowSelectors";
 import Panel from "./Panel";
 import ActionButton from "./ActionButton";
 import SecondaryButton from "./SecondaryButton";
 import LoadingSpinner from "./LoadingSpinner";
 import IconButton from "./IconButton";
-import {
-  MicIcon,
-  CopyIcon,
-  CheckIcon as CheckmarkIcon,
-  SparklesIcon,
-} from "./Icons";
-import { useWorkflowStore } from '../App';
+import { MicIcon, CopyIcon, CheckIcon as CheckmarkIcon, SparklesIcon } from "./Icons";
 import { applySyntaxHighlighting } from "../utils/syntaxHighlighter";
 import { saveCaretPosition, restoreCaretPosition } from "../utils/caretUtils";
 import { htmlToText, textToHtml } from "../utils/textUtils";
@@ -90,6 +85,7 @@ const EditableReportArea: React.FC = () => {
     resetTranscript,
   } = useSpeechRecognition();
 
+  // Use optimized selector hook (prevents unnecessary re-renders)
   const {
     rawContent,
     onContentChange,
@@ -97,14 +93,7 @@ const EditableReportArea: React.FC = () => {
     onReviseBrief,
     onIntegrateDictation,
     onFinalReview,
-  } = useWorkflowStore((state) => ({
-    rawContent: state.editableReportContent,
-    onContentChange: state.setEditableReportContent,
-    activeProcess: state.activeProcess,
-    onReviseBrief: state.reviseBrief,
-    onIntegrateDictation: state.integrateDictation,
-    onFinalReview: state.fetchFinalReview,
-  }));
+  } = useEditableReportState();
 
   const isLoading = activeProcess === "generating";
   const isRefining = activeProcess === "refining";
@@ -112,25 +101,31 @@ const EditableReportArea: React.FC = () => {
   const isFinalReviewActive = activeProcess === "fetchingFinalReview";
   const isApplyingChanges = activeProcess === "applyingChanges";
   const isAnyLoading =
-    isLoading ||
-    isRefining ||
-    isIntegrating ||
-    isFinalReviewActive ||
-    isApplyingChanges;
+    isLoading || isRefining || isIntegrating || isFinalReviewActive || isApplyingChanges;
 
-  // Synchronize editor display
+  // Synchronize editor display with DEBOUNCED syntax highlighting
+  // This prevents lag when typing by delaying the expensive regex operations
   useEffect(() => {
     const editor = divRef.current;
     if (!editor) return;
+
+    // Save caret position immediately
     const caretPos = saveCaretPosition(editor);
-    const safeHtml = textToHtml(rawContent);
-    const newlyHighlightedHtml = applySyntaxHighlighting(safeHtml);
-    setHighlightedHtml(newlyHighlightedHtml);
-    queueMicrotask(() => {
-      if (divRef.current) {
-        restoreCaretPosition(divRef.current, caretPos);
-      }
-    });
+
+    // Debounce the expensive syntax highlighting (150ms delay)
+    const timeoutId = setTimeout(() => {
+      const safeHtml = textToHtml(rawContent);
+      const newlyHighlightedHtml = applySyntaxHighlighting(safeHtml);
+      setHighlightedHtml(newlyHighlightedHtml);
+
+      queueMicrotask(() => {
+        if (divRef.current) {
+          restoreCaretPosition(divRef.current, caretPos);
+        }
+      });
+    }, 150);
+
+    return () => clearTimeout(timeoutId);
   }, [rawContent]);
 
   // Handle Speech Transcript - Append to Dictation Box instead of auto-integrating
@@ -202,9 +197,7 @@ const EditableReportArea: React.FC = () => {
           <div className="absolute inset-0 flex flex-col justify-center items-center bg-transparent z-10">
             <LoadingSpinner className="h-10 w-10 text-(--color-primary)" />
             <p className="mt-4 text-sm text-(--color-text-muted)">
-              {isLoading
-                ? "Generating initial report draft..."
-                : "Refining report..."}
+              {isLoading ? "Generating initial report draft..." : "Refining report..."}
             </p>
           </div>
         )}
@@ -221,9 +214,7 @@ const EditableReportArea: React.FC = () => {
         />
         {(isIntegrating || isApplyingChanges) && (
           <div className="absolute bottom-2 right-2 text-xs text-(--color-primary) bg-(--color-panel-bg) px-2 py-1 rounded shadow-lg">
-            {isIntegrating
-              ? "Integrating dictation..."
-              : "Applying recommendations..."}
+            {isIntegrating ? "Integrating dictation..." : "Applying recommendations..."}
           </div>
         )}
       </div>

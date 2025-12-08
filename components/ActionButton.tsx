@@ -1,13 +1,19 @@
-import React from 'react';
-import LoadingSpinner from './LoadingSpinner';
+import React from "react";
+import LoadingSpinner from "./LoadingSpinner";
 
 interface ActionButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
 }
 
-const ActionButton: React.FC<ActionButtonProps> = ({ children, isLoading, disabled, className, ...props }) => {
+const ActionButton: React.FC<ActionButtonProps> = ({
+  children,
+  isLoading,
+  disabled,
+  className,
+  ...props
+}) => {
   const isDisabled = isLoading || disabled;
-  
+
   return (
     <button
       disabled={isDisabled}
@@ -32,7 +38,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ children, isLoading, disabl
     >
       {/* Scanner Light Effect */}
       <div className="absolute inset-0 -translate-x-[150%] skew-x-[-20deg] w-[50%] bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:animate-[shine_1s_ease-in-out_infinite] z-10" />
-      
+
       {/* Ambient Glow */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-50" />
 

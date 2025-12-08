@@ -1,6 +1,6 @@
-import React from 'react';
-import EditableReportArea from '../EditableReportArea';
-import CopilotPanel from '../CopilotPanel';
+import React from "react";
+import EditableReportArea from "../EditableReportArea";
+import CopilotPanel from "../CopilotPanel";
 
 const SubmittedStage: React.FC = () => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full grow">

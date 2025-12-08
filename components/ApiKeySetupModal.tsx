@@ -52,9 +52,7 @@ const ApiKeySetupModal: React.FC<ApiKeySetupModalProps> = ({ onComplete }) => {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">
-              Welcome to RadFlow
-            </h2>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Welcome to RadFlow</h2>
             <p className="text-sm text-slate-400">
               To get started, please enter your AI provider API key
             </p>
@@ -62,9 +60,7 @@ const ApiKeySetupModal: React.FC<ApiKeySetupModalProps> = ({ onComplete }) => {
 
           {/* Instructions */}
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-md p-4 space-y-2">
-            <p className="text-xs text-blue-200 font-semibold">
-              How to get your API key:
-            </p>
+            <p className="text-xs text-blue-200 font-semibold">How to get your API key:</p>
             <div className="text-xs text-slate-300 space-y-2">
               <p className="font-semibold">Google Gemini (Default):</p>
               <ol className="list-decimal list-inside space-y-1 ml-2">
@@ -84,16 +80,15 @@ const ApiKeySetupModal: React.FC<ApiKeySetupModalProps> = ({ onComplete }) => {
                 <li>Copy the key and paste it below</li>
               </ol>
               <p className="text-xs text-slate-400 mt-2">
-                You can add other providers (OpenAI, Anthropic, OpenRouter, Perplexity) later in Settings.
+                You can add other providers (OpenAI, Anthropic, OpenRouter, Perplexity) later in
+                Settings.
               </p>
             </div>
           </div>
 
           {/* Input Field */}
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-slate-200">
-              Gemini API Key
-            </label>
+            <label className="block text-sm font-semibold text-slate-200">Gemini API Key</label>
             <div className="relative">
               <input
                 type={isVisible ? "text" : "password"}
@@ -112,11 +107,7 @@ const ApiKeySetupModal: React.FC<ApiKeySetupModalProps> = ({ onComplete }) => {
                 onClick={() => setIsVisible(!isVisible)}
                 className="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-white transition-colors"
               >
-                {isVisible ? (
-                  <EyeSlashIcon className="h-5 w-5" />
-                ) : (
-                  <EyeIcon className="h-5 w-5" />
-                )}
+                {isVisible ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
               </button>
             </div>
             {error && <p className="text-xs text-red-400">{error}</p>}
@@ -125,9 +116,9 @@ const ApiKeySetupModal: React.FC<ApiKeySetupModalProps> = ({ onComplete }) => {
           {/* Security Notice */}
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-md p-3">
             <p className="text-xs text-amber-200">
-              <span className="font-semibold">Security Note:</span> Your API key
-              will be stored securely in your browser's local storage and never
-              sent to any server except Google's API.
+              <span className="font-semibold">Security Note:</span> Your API key will be stored
+              securely in your browser's local storage and never sent to any server except Google's
+              API.
             </p>
           </div>
 

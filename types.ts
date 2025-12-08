@@ -69,11 +69,7 @@ export interface ParsedInput {
   unmatchedText?: RejectableItem[];
 }
 
-export type RejectableCategory =
-  | "allergies"
-  | "medications"
-  | "surgeries"
-  | "unmatchedText";
+export type RejectableCategory = "allergies" | "medications" | "surgeries" | "unmatchedText";
 
 export interface AppError {
   message: string;

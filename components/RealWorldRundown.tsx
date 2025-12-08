@@ -12,18 +12,16 @@ const FormattedContent: React.FC<{ content: string }> = ({ content }) => {
     .filter((line) => line.trim());
 
   // Check if content is numbered list (1. 2. 3. etc)
-  const isNumberedList = lines.every((line) =>
-    /^\d+[\.\)]\s/.test(line.trim()),
-  );
+  const isNumberedList = lines.every((line) => /^\d+[.)]\s/.test(line.trim()));
 
   // Check if content is bullet list (• - * etc)
-  const isBulletList = lines.every((line) => /^[•\-\*]\s/.test(line.trim()));
+  const isBulletList = lines.every((line) => /^[•\-*]\s/.test(line.trim()));
 
   if (isNumberedList) {
     return (
       <ol className="space-y-3">
         {lines.map((line, idx) => {
-          const text = line.replace(/^\d+[\.\)]\s*/, "").trim();
+          const text = line.replace(/^\d+[.)]\s*/, "").trim();
           const parts = parseLineWithEmphasis(text);
           return (
             <li key={idx} className="flex gap-3">
@@ -44,7 +42,7 @@ const FormattedContent: React.FC<{ content: string }> = ({ content }) => {
     return (
       <ul className="space-y-3">
         {lines.map((line, idx) => {
-          const text = line.replace(/^[•\-\*]\s*/, "").trim();
+          const text = line.replace(/^[•\-*]\s*/, "").trim();
           const parts = parseLineWithEmphasis(text);
           return (
             <li key={idx} className="flex gap-3 items-start">
@@ -76,9 +74,7 @@ const parseLineWithEmphasis = (text: string): React.ReactNode => {
     const [, keyPoint, explanation] = colonMatch;
     return (
       <>
-        <span className="font-semibold text-(--color-text-default)">
-          {keyPoint}
-        </span>
+        <span className="font-semibold text-(--color-text-default)">{keyPoint}</span>
         <span className="text-(--color-text-muted)">: {explanation}</span>
       </>
     );
@@ -112,9 +108,7 @@ const SectionCard: React.FC<SectionCardProps> = ({ section, icon }) => {
       ) : section.content ? (
         <FormattedContent content={section.content} />
       ) : (
-        <div className="text-xs text-(--color-text-muted) italic py-1">
-          Waiting...
-        </div>
+        <div className="text-xs text-(--color-text-muted) italic py-1">Waiting...</div>
       )}
     </div>
   );
@@ -123,33 +117,13 @@ const SectionCard: React.FC<SectionCardProps> = ({ section, icon }) => {
 // Icons for each section
 const Icons = {
   topFacts: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M13 10V3L4 14h7v7l9-11h-7z"
-      />
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
     </svg>
   ),
   whatToLookFor: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-      />
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -158,13 +132,7 @@ const Icons = {
     </svg>
   ),
   pitfalls: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -173,13 +141,7 @@ const Icons = {
     </svg>
   ),
   searchPattern: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -188,13 +150,7 @@ const Icons = {
     </svg>
   ),
   pertinentNegatives: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -203,13 +159,7 @@ const Icons = {
     </svg>
   ),
   classicSigns: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -218,13 +168,7 @@ const Icons = {
     </svg>
   ),
   bottomLine: (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -239,15 +183,10 @@ interface RealWorldRundownProps {
   isGenerating: boolean;
 }
 
-const RealWorldRundown: React.FC<RealWorldRundownProps> = ({
-  data,
-  isGenerating,
-}) => {
+const RealWorldRundown: React.FC<RealWorldRundownProps> = ({ data, isGenerating }) => {
   const hasAnyContent =
     data &&
-    Object.values(data).some(
-      (section: RundownSection) => section.content || section.isLoading,
-    );
+    Object.values(data).some((section: RundownSection) => section.content || section.isLoading);
 
   return (
     <Panel
@@ -262,31 +201,19 @@ const RealWorldRundown: React.FC<RealWorldRundownProps> = ({
           <SectionCard section={data.topFacts} icon={Icons.topFacts} />
 
           {/* What to hunt for */}
-          <SectionCard
-            section={data.whatToLookFor}
-            icon={Icons.whatToLookFor}
-          />
+          <SectionCard section={data.whatToLookFor} icon={Icons.whatToLookFor} />
 
           {/* Two-column layout for pitfalls and classic signs */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <SectionCard section={data.pitfalls} icon={Icons.pitfalls} />
-            <SectionCard
-              section={data.classicSigns}
-              icon={Icons.classicSigns}
-            />
+            <SectionCard section={data.classicSigns} icon={Icons.classicSigns} />
           </div>
 
           {/* Search pattern - full width, important workflow item */}
-          <SectionCard
-            section={data.searchPattern}
-            icon={Icons.searchPattern}
-          />
+          <SectionCard section={data.searchPattern} icon={Icons.searchPattern} />
 
           {/* Pertinent negatives */}
-          <SectionCard
-            section={data.pertinentNegatives}
-            icon={Icons.pertinentNegatives}
-          />
+          <SectionCard section={data.pertinentNegatives} icon={Icons.pertinentNegatives} />
 
           {/* Bottom line - the takeaway */}
           <div className="border-t border-(--color-border) pt-4">

@@ -1,8 +1,6 @@
-import React from 'react';
+import React from "react";
 
-interface SecondaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  // No special props needed yet, but structure is here for future expansion
-}
+type SecondaryButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 const SecondaryButton: React.FC<SecondaryButtonProps> = ({ children, className, ...props }) => {
   const baseClasses = `
@@ -19,10 +17,7 @@ const SecondaryButton: React.FC<SecondaryButtonProps> = ({ children, className, 
   `;
 
   return (
-    <button
-      className={`${baseClasses} ${className || ''}`}
-      {...props}
-    >
+    <button className={`${baseClasses} ${className || ""}`} {...props}>
       {children}
     </button>
   );

@@ -1,26 +1,19 @@
 import React from "react";
+import { useShallow } from "zustand/react/shallow";
 import ClinicalGuidancePanel from "./EvolvingGuidance";
 import { FinalReviewPanel } from "./FinalReviewPanel";
 import { DifferentialBuilder } from "./DifferentialBuilder";
 import { useWorkflowStore } from "../App";
 import { CopilotView } from "../types";
 import Panel from "./Panel";
-import {
-  LightbulbIcon,
-  ListTreeIcon,
-  ShieldCheckIcon,
-  CheckIcon,
-} from "./Icons";
+import { LightbulbIcon, ListTreeIcon, ShieldCheckIcon, CheckIcon } from "./Icons";
 
 interface CopilotStepperProps {
   currentView: CopilotView;
   setView: (view: CopilotView) => void;
 }
 
-const CopilotStepper: React.FC<CopilotStepperProps> = ({
-  currentView,
-  setView,
-}) => {
+const CopilotStepper: React.FC<CopilotStepperProps> = ({ currentView, setView }) => {
   const steps: { view: CopilotView; name: string; icon: React.FC<any> }[] = [
     { view: "guidance", name: "Guidance", icon: LightbulbIcon },
     { view: "differentials", name: "Differentials", icon: ListTreeIcon },
@@ -60,11 +53,7 @@ const CopilotStepper: React.FC<CopilotStepperProps> = ({
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${stepClasses}`}
               >
-                {isCompleted ? (
-                  <CheckIcon className="w-5 h-5" />
-                ) : (
-                  <Icon className="w-5 h-5" />
-                )}
+                {isCompleted ? <CheckIcon className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
               </div>
               <p
                 className={`mt-2 text-xs font-semibold transition-colors duration-300 ${isCurrent || isCompleted ? "text-(--color-text-bright)" : "text-(--color-text-muted)"}`}
@@ -85,15 +74,17 @@ const CopilotStepper: React.FC<CopilotStepperProps> = ({
 };
 
 const CopilotPanel: React.FC = () => {
-  const { view, setCopilotView, activeProcess } = useWorkflowStore((state) => ({
-    view: state.copilotView,
-    setCopilotView: state.setCopilotView,
-    activeProcess: state.activeProcess,
-  }));
+  // Use useShallow to prevent unnecessary re-renders
+  const { view, setCopilotView, activeProcess } = useWorkflowStore(
+    useShallow((state) => ({
+      view: state.copilotView,
+      setCopilotView: state.setCopilotView,
+      activeProcess: state.activeProcess,
+    }))
+  );
 
   const isPanelLoading =
-    activeProcess === "generatingDifferentials" ||
-    activeProcess === "synthesizingImpression";
+    activeProcess === "generatingDifferentials" || activeProcess === "synthesizingImpression";
 
   const renderContent = () => {
     switch (view) {

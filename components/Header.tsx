@@ -1,21 +1,21 @@
 import React from "react";
+import { useShallow } from "zustand/react/shallow";
 import { SettingsIcon, NewCaseIcon, BugAntIcon } from "./Icons";
 import SecondaryButton from "./SecondaryButton";
 import IconButton from "./IconButton";
 import { useWorkflowStore } from "../App";
 
 const Header: React.FC = () => {
-  const {
-    activeProcess,
-    resetWorkflow,
-    toggleSettingsPanel,
-    toggleDiagnosticsPanel,
-  } = useWorkflowStore((state) => ({
-    activeProcess: state.activeProcess,
-    resetWorkflow: state.resetWorkflow,
-    toggleSettingsPanel: state.toggleSettingsPanel,
-    toggleDiagnosticsPanel: state.toggleDiagnosticsPanel,
-  }));
+  // Use useShallow to prevent unnecessary re-renders
+  const { activeProcess, resetWorkflow, toggleSettingsPanel, toggleDiagnosticsPanel } =
+    useWorkflowStore(
+      useShallow((state) => ({
+        activeProcess: state.activeProcess,
+        resetWorkflow: state.resetWorkflow,
+        toggleSettingsPanel: state.toggleSettingsPanel,
+        toggleDiagnosticsPanel: state.toggleDiagnosticsPanel,
+      }))
+    );
 
   const [currentTime, setCurrentTime] = React.useState(new Date());
 
@@ -45,10 +45,7 @@ const Header: React.FC = () => {
 
       {/* Centered logo */}
       <div className="flex justify-center">
-        <div
-          className="flex flex-col items-center cursor-pointer group"
-          onClick={resetWorkflow}
-        >
+        <div className="flex flex-col items-center cursor-pointer group" onClick={resetWorkflow}>
           <h1 className="text-3xl font-light tracking-[0.2em] text-white/90 font-header flex items-center drop-shadow-2xl transition-all duration-500 group-hover:text-white group-hover:scale-105">
             RAD<span className="text-indigo-400 ml-1 font-thin">FLOW</span>
           </h1>

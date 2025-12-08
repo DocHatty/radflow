@@ -16,7 +16,7 @@ interface AiRequestPayload {
 const runGoogleRequest = async (
   payload: AiRequestPayload,
   schema?: any,
-  useGrounding: boolean = false,
+  useGrounding: boolean = false
 ) => {
   // For the default provider, apiKey might be empty, relying on the environment variable.
   // For user-added Google providers, we'd instantiate with their key.
@@ -48,10 +48,7 @@ const runGoogleRequest = async (
     const sources =
       groundingMetadata?.groundingChunks
         ?.map((chunk) => chunk.web)
-        .filter(
-          (web): web is { uri: string; title: string } =>
-            !!(web?.uri && web.title),
-        ) || [];
+        .filter((web): web is { uri: string; title: string } => !!(web?.uri && web.title)) || [];
     return { text, sources };
   }
 
@@ -64,22 +61,17 @@ const runGoogleRequest = async (
     const jsonString = jsonMatch[1] || jsonMatch[2];
     try {
       return JSON.parse(jsonString);
-    } catch (e) {
-      throw new Error(
-        `Failed to parse extracted JSON from AI response. Content: ${jsonString}`,
-      );
+    } catch {
+      throw new Error(`Failed to parse extracted JSON from AI response. Content: ${jsonString}`);
     }
   }
 
   // Fallback for cases where the text might be just the JSON string without fences
   try {
     return JSON.parse(text);
-  } catch (e) {
+  } catch {
     // If schema was expected but parsing failed, throw. Otherwise return text.
-    if (schema)
-      throw new Error(
-        `AI returned non-JSON response for a JSON task. Content: ${text}`,
-      );
+    if (schema) throw new Error(`AI returned non-JSON response for a JSON task. Content: ${text}`);
     return text;
   }
 };
@@ -140,11 +132,9 @@ const runGoogleImageRequest = async (payload: AiRequestPayload) => {
 };
 
 // --- Generic Fetch-based Implementation for OpenAI, Anthropic, OpenRouter, Perplexity ---
-const runFetchStreamRequest = async (
-  payload: AiRequestPayload,
-): Promise<string> => {
+const runFetchStreamRequest = async (payload: AiRequestPayload): Promise<string> => {
   const { provider, model, systemInstruction, prompt, onChunk } = payload;
-  
+
   // Set default base URLs if not provided
   let endpoint = provider.baseUrl;
   if (!endpoint) {
@@ -166,7 +156,7 @@ const runFetchStreamRequest = async (
         endpoint = "";
     }
   }
-  
+
   if (provider.providerId !== "anthropic") {
     endpoint += "/chat/completions";
   } else {
@@ -220,9 +210,7 @@ const runFetchStreamRequest = async (
 
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new Error(
-      `API Error: ${response.status} ${response.statusText} - ${errorBody}`,
-    );
+    throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
   }
 
   if (!response.body) {
@@ -249,10 +237,7 @@ const runFetchStreamRequest = async (
           const parsed = JSON.parse(jsonStr);
           let textChunk = "";
           if (provider.providerId === "anthropic") {
-            if (
-              parsed.type === "content_block_delta" &&
-              parsed.delta.type === "text_delta"
-            ) {
+            if (parsed.type === "content_block_delta" && parsed.delta.type === "text_delta") {
               textChunk = parsed.delta.text;
             }
           } else {
@@ -264,7 +249,7 @@ const runFetchStreamRequest = async (
             fullText += textChunk;
             onChunk?.(textChunk);
           }
-        } catch (e) {
+        } catch {
           console.error("Failed to parse stream chunk:", jsonStr);
         }
       }
@@ -320,9 +305,7 @@ export const multiProviderAiService = {
     if (payload.provider.providerId === "google") {
       return runGoogleImageRequest(payload);
     } else {
-      throw new Error(
-        "Image generation is currently only supported by Google Imagen models.",
-      );
+      throw new Error("Image generation is currently only supported by Google Imagen models.");
     }
   },
 };

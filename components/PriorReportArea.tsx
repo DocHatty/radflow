@@ -1,13 +1,11 @@
-import React from 'react';
-import { Prior } from '../types';
-import Panel from './Panel';
-import EmptyState from './EmptyState';
-import { ExpandCollapseIcon } from './Icons';
-import { useWorkflowStore } from '../App';
-
+import React from "react";
+import Panel from "./Panel";
+import EmptyState from "./EmptyState";
+import { ExpandCollapseIcon } from "./Icons";
+import { useWorkflowStore } from "../App";
 
 const PriorReportArea: React.FC = () => {
-  const priors = useWorkflowStore(state => state.parsedInfo?.priors) || [];
+  const priors = useWorkflowStore((state) => state.parsedInfo?.priors) || [];
 
   if (!priors || priors.length === 0) {
     return null;
@@ -18,11 +16,16 @@ const PriorReportArea: React.FC = () => {
       <div className="text-(--color-text-muted) text-sm leading-relaxed space-y-3">
         {priors && priors.length > 0 ? (
           priors.map((prior, index) => (
-            <div key={index} className="bg-(--color-interactive-bg)/50 p-3 rounded-md border border-(--color-border)">
-                <p className="text-(--color-text-default)">{prior.content}</p>
-                {prior.date && (
-                    <p className="text-xs text-(--color-text-muted) font-mono mt-1.5 pt-1.5 border-t border-(--color-border)">Date: {prior.date}</p>
-                )}
+            <div
+              key={index}
+              className="bg-(--color-interactive-bg)/50 p-3 rounded-md border border-(--color-border)"
+            >
+              <p className="text-(--color-text-default)">{prior.content}</p>
+              {prior.date && (
+                <p className="text-xs text-(--color-text-muted) font-mono mt-1.5 pt-1.5 border-t border-(--color-border)">
+                  Date: {prior.date}
+                </p>
+              )}
             </div>
           ))
         ) : (

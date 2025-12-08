@@ -2,27 +2,18 @@ import { StateCreator } from "zustand";
 import { logEvent } from "../services/loggingService";
 import { runAiTask } from "../services/aiOrchestrator";
 import { constructBriefFromParsedInput } from "../services/clinicalUtils";
-import {
-  findTemplateForStudy,
-  GENERIC_NORMAL_TEMPLATE,
-} from "../components/reportTemplates";
-import {
-  Guideline,
-  FOLLOW_UP_GUIDELINES,
-} from "../guidelines/followUpGuidelines";
+import { findTemplateForStudy, GENERIC_NORMAL_TEMPLATE } from "../components/reportTemplates";
+import { Guideline, FOLLOW_UP_GUIDELINES } from "../guidelines/followUpGuidelines";
 import type {
   ParsedInput,
   RejectableCategory,
   RejectableItem,
   LabResult,
   Prior,
-  Settings,
   AppError,
   DiagnosticMessage,
   DifferentialDiagnosis,
-  PromptKey,
   CopilotView,
-  AiTaskType,
 } from "../types";
 import { SettingsSlice } from "./createSettingsSlice";
 import {
@@ -93,7 +84,7 @@ export interface WorkflowSlice {
     category: keyof ParsedInput,
     newValue: string,
     index?: number,
-    field?: keyof LabResult | keyof Prior | "value",
+    field?: keyof LabResult | keyof Prior | "value"
   ) => void;
   rejectItem: (category: RejectableCategory, indexToToggle: number) => void;
   confirmBrief: () => Promise<void>;
@@ -153,29 +144,91 @@ const initialState = {
   isGeneratingRundown: false,
 };
 
-// Global AbortController for cancelling in-flight guidance requests
-let guidanceAbortController: AbortController | null = null;
-
 /**
- * Cancels any in-flight guidance requests. Call this before starting new requests
- * or when navigating away from a stage that has pending requests.
+ * AbortController Manager - Properly manages request cancellation with unique IDs
+ * This replaces the problematic global AbortController pattern
+ *
+ * Key improvements:
+ * 1. Each request batch gets a unique ID
+ * 2. Controllers are stored in a Map, preventing race conditions
+ * 3. Old requests can be canceled without affecting new ones
+ * 4. Proper cleanup when requests complete
  */
-const cancelGuidanceRequests = () => {
-  if (guidanceAbortController) {
-    guidanceAbortController.abort();
-    guidanceAbortController = null;
+class AbortControllerManager {
+  private controllers = new Map<string, AbortController>();
+  private requestCounter = 0;
+
+  /**
+   * Create a new AbortController for a specific request type
+   * Optionally cancel any existing controller for the same type
+   */
+  create(type: string, cancelExisting = true): { controller: AbortController; id: string } {
+    const id = `${type}-${++this.requestCounter}`;
+
+    if (cancelExisting) {
+      this.cancelByType(type);
+    }
+
+    const controller = new AbortController();
+    this.controllers.set(id, controller);
+
+    logEvent("AbortController created", { type, id });
+    return { controller, id };
   }
-};
 
-/**
- * Creates a new AbortController for guidance requests.
- * Automatically cancels any existing controller first.
- */
-const createGuidanceAbortController = (): AbortController => {
-  cancelGuidanceRequests();
-  guidanceAbortController = new AbortController();
-  return guidanceAbortController;
-};
+  /**
+   * Cancel all controllers matching a type prefix
+   */
+  cancelByType(type: string): void {
+    for (const [id, controller] of this.controllers.entries()) {
+      if (id.startsWith(`${type}-`)) {
+        controller.abort();
+        this.controllers.delete(id);
+        logEvent("AbortController canceled", { id });
+      }
+    }
+  }
+
+  /**
+   * Cancel a specific controller by ID
+   */
+  cancel(id: string): void {
+    const controller = this.controllers.get(id);
+    if (controller) {
+      controller.abort();
+      this.controllers.delete(id);
+      logEvent("AbortController canceled", { id });
+    }
+  }
+
+  /**
+   * Clean up a controller after request completes (success or failure)
+   */
+  cleanup(id: string): void {
+    this.controllers.delete(id);
+  }
+
+  /**
+   * Cancel all pending requests
+   */
+  cancelAll(): void {
+    for (const [id, controller] of this.controllers.entries()) {
+      controller.abort();
+      logEvent("AbortController canceled (cancelAll)", { id });
+    }
+    this.controllers.clear();
+  }
+
+  /**
+   * Get count of active controllers (for debugging)
+   */
+  getActiveCount(): number {
+    return this.controllers.size;
+  }
+}
+
+// Singleton instance for the app
+const abortManager = new AbortControllerManager();
 
 /**
  * Creates a robust stream handler that buffers incoming text chunks and updates
@@ -193,15 +246,10 @@ const createGuidanceAbortController = (): AbortController => {
 const createStreamHandler = (
   set: (
     fn: (
-      state: WorkflowSlice & SettingsSlice,
-    ) =>
-      | Partial<WorkflowSlice & SettingsSlice>
-      | (WorkflowSlice & SettingsSlice),
+      state: WorkflowSlice & SettingsSlice
+    ) => Partial<WorkflowSlice & SettingsSlice> | (WorkflowSlice & SettingsSlice)
   ) => void,
-  updateFn: (
-    state: WorkflowSlice,
-    bufferedChunk: string,
-  ) => Partial<WorkflowSlice>,
+  updateFn: (state: WorkflowSlice, bufferedChunk: string) => Partial<WorkflowSlice>
 ) => {
   // Use array instead of string concatenation for O(1) appends
   const chunks: string[] = [];
@@ -259,8 +307,7 @@ export const createWorkflowSlice: StateCreator<
       set({ isAiReady: true });
       logEvent("AI Services Ready");
     } catch (e) {
-      const error =
-        e instanceof Error ? e.message : "Unknown initialization error";
+      const error = e instanceof Error ? e.message : "Unknown initialization error";
       get().setError({
         message: `Failed to initialize AI. ${error}`,
         context: "Initialization",
@@ -300,8 +347,7 @@ export const createWorkflowSlice: StateCreator<
     }),
 
   setUserInput: (input) => set({ userInput: input }),
-  setEditableReportContent: (content) =>
-    set({ editableReportContent: content }),
+  setEditableReportContent: (content) => set({ editableReportContent: content }),
   setExamDateInput: (date) => set({ examDateInput: date }),
 
   submitInput: async () => {
@@ -338,7 +384,7 @@ export const createWorkflowSlice: StateCreator<
       const clinicalBrief = constructBriefFromParsedInput(parsedData);
 
       // Create new AbortController for this batch of requests (cancels any previous)
-      const abortController = createGuidanceAbortController();
+      const { controller: abortController, id: abortId } = abortManager.create("guidance");
       const signal = abortController.signal;
 
       logEvent("Starting PARALLEL pre-fetch of guidance...");
@@ -399,43 +445,39 @@ export const createWorkflowSlice: StateCreator<
                     ...state.rundownData[key],
                     content: safeContent,
                     isLoading: false,
-                    error: safeContent.startsWith("Error:")
-                      ? safeContent
-                      : undefined,
+                    error: safeContent.startsWith("Error:") ? safeContent : undefined,
                   },
                 },
               };
             });
           }
         },
-        signal,
+        signal
       );
 
       // Wait for both to complete with proper error handling
-      Promise.allSettled([appropriatenessPromise, rundownPromise]).then(
-        (results) => {
-          if (!signal.aborted) {
-            set({ isFetchingGuidance: false, isGeneratingRundown: false });
-            logEvent("Parallel guidance pre-fetch complete");
+      Promise.allSettled([appropriatenessPromise, rundownPromise]).then((results) => {
+        // Clean up the abort controller
+        abortManager.cleanup(abortId);
 
-            // Log any failures for debugging
-            results.forEach((result, index) => {
-              if (
-                result.status === "rejected" &&
-                result.reason?.name !== "AbortError"
-              ) {
-                logEvent(`Pre-fetch task ${index} failed`, {
-                  error: result.reason?.message,
-                });
-              }
-            });
-          }
-        },
-      );
+        if (!signal.aborted) {
+          set({ isFetchingGuidance: false, isGeneratingRundown: false });
+          logEvent("Parallel guidance pre-fetch complete");
+
+          // Log any failures for debugging
+          results.forEach((result, index) => {
+            if (result.status === "rejected" && result.reason?.name !== "AbortError") {
+              logEvent(`Pre-fetch task ${index} failed`, {
+                error: result.reason?.message,
+              });
+            }
+          });
+        }
+      });
 
       // Also pre-fetch guideline selection
       const guidelineKnowledgeBase = FOLLOW_UP_GUIDELINES.map(
-        (g) => `Topic: ${g.topic}\nSummary: ${g.summary}`,
+        (g) => `Topic: ${g.topic}\nSummary: ${g.summary}`
       ).join("\n\n");
 
       runAiTask<{ relevantGuidelineTopics: string[] }>("selectGuidelines", {
@@ -446,7 +488,7 @@ export const createWorkflowSlice: StateCreator<
           if (!signal.aborted) {
             const relevantTopics = new Set(result.relevantGuidelineTopics);
             const activeGuidelines = FOLLOW_UP_GUIDELINES.filter((g) =>
-              relevantTopics.has(g.topic),
+              relevantTopics.has(g.topic)
             );
             set({ activeGuidelines });
             logEvent("Pre-fetched guidelines ready", {
@@ -469,11 +511,7 @@ export const createWorkflowSlice: StateCreator<
 
   resolveContrastClarification: (contrastChoice: string) =>
     set((state) => {
-      if (
-        !state.parsedInfo ||
-        !state.parsedInfo.studyType ||
-        !state.contrastClarificationNeeded
-      )
+      if (!state.parsedInfo || !state.parsedInfo.studyType || !state.contrastClarificationNeeded)
         return {};
 
       const newStudyType = `${state.contrastClarificationNeeded.studyType} ${contrastChoice}`;
@@ -506,9 +544,7 @@ export const createWorkflowSlice: StateCreator<
           (newInfo as any)[category] = newList;
         }
       } else {
-        const newObject = targetCategory
-          ? JSON.parse(JSON.stringify(targetCategory))
-          : {};
+        const newObject = targetCategory ? JSON.parse(JSON.stringify(targetCategory)) : {};
         newObject[field] = newValue;
         (newInfo as any)[category] = newObject;
       }
@@ -532,19 +568,12 @@ export const createWorkflowSlice: StateCreator<
     }),
 
   confirmBrief: async () => {
-    const {
-      parsedInfo,
-      guidanceContent,
-      activeGuidelines,
-      setProcess,
-      setError,
-    } = get();
+    const { parsedInfo, guidanceContent, activeGuidelines, setProcess, setError } = get();
     if (!parsedInfo) return;
 
     if (!parsedInfo.examDate?.value?.trim()) {
       setError({
-        message:
-          "Please enter the date of the exam before generating the report.",
+        message: "Please enter the date of the exam before generating the report.",
         context: "Missing Required Field",
       });
       return;
@@ -581,7 +610,7 @@ export const createWorkflowSlice: StateCreator<
       logEvent("No pre-fetched guidance found, fetching now (parallel)");
 
       // Create new AbortController for this batch
-      const abortController = createGuidanceAbortController();
+      const { controller: abortController, id: abortId } = abortManager.create("guidance");
       const signal = abortController.signal;
 
       set({
@@ -635,44 +664,41 @@ export const createWorkflowSlice: StateCreator<
                     ...state.rundownData[key],
                     content: safeContent,
                     isLoading: false,
-                    error: safeContent.startsWith("Error:")
-                      ? safeContent
-                      : undefined,
+                    error: safeContent.startsWith("Error:") ? safeContent : undefined,
                   },
                 },
               };
             });
           }
         },
-        signal,
+        signal
       );
 
-      guidancePromise = Promise.allSettled([
-        appropriatenessPromise,
-        rundownPromise,
-      ]).then((results) => {
-        if (!signal.aborted) {
-          set({ isFetchingGuidance: false, isGeneratingRundown: false });
-          // Log failures for debugging
-          results.forEach((result, index) => {
-            if (
-              result.status === "rejected" &&
-              result.reason?.name !== "AbortError"
-            ) {
-              logEvent(`Guidance task ${index} failed`, {
-                error: result.reason?.message,
-              });
-            }
-          });
+      guidancePromise = Promise.allSettled([appropriatenessPromise, rundownPromise]).then(
+        (results) => {
+          // Clean up the abort controller
+          abortManager.cleanup(abortId);
+
+          if (!signal.aborted) {
+            set({ isFetchingGuidance: false, isGeneratingRundown: false });
+            // Log failures for debugging
+            results.forEach((result, index) => {
+              if (result.status === "rejected" && result.reason?.name !== "AbortError") {
+                logEvent(`Guidance task ${index} failed`, {
+                  error: result.reason?.message,
+                });
+              }
+            });
+          }
         }
-      });
+      );
     } else {
       logEvent("Using pre-fetched guidance (instant load or already fetching)");
     }
 
     if (!preFetchedGuidelines || preFetchedGuidelines.length === 0) {
       const guidelineKnowledgeBase = FOLLOW_UP_GUIDELINES.map(
-        (g) => `Topic: ${g.topic}\nSummary: ${g.summary}`,
+        (g) => `Topic: ${g.topic}\nSummary: ${g.summary}`
       ).join("\n\n");
       guidelineSelectionPromise = runAiTask<{
         relevantGuidelineTopics: string[];
@@ -681,9 +707,7 @@ export const createWorkflowSlice: StateCreator<
       })
         .then((result) => {
           const relevantTopics = new Set(result.relevantGuidelineTopics);
-          const activeGuidelines = FOLLOW_UP_GUIDELINES.filter((g) =>
-            relevantTopics.has(g.topic),
-          );
+          const activeGuidelines = FOLLOW_UP_GUIDELINES.filter((g) => relevantTopics.has(g.topic));
           set({ activeGuidelines });
           logEvent("Guideline selection complete", {
             selected: activeGuidelines.map((g) => g.topic),
@@ -702,8 +726,7 @@ export const createWorkflowSlice: StateCreator<
     // This is awaited directly to provide the user with the report draft as fast as possible.
     try {
       const reportTemplate =
-        findTemplateForStudy(parsedInfo.studyType?.value) ||
-        GENERIC_NORMAL_TEMPLATE;
+        findTemplateForStudy(parsedInfo.studyType?.value) || GENERIC_NORMAL_TEMPLATE;
       const draftContent = await runAiTask<string>("draftReport", {
         prompt: `**Clinical Brief:**\n${clinicalBrief}\n\n**Base Report Template:**\n${reportTemplate.findings}\n${reportTemplate.impression}`,
       });
@@ -712,21 +735,16 @@ export const createWorkflowSlice: StateCreator<
       // DO NOT generate differentials here - only after dictation
 
       // Let background tasks finish without blocking UI, with proper error handling
-      Promise.allSettled([guidancePromise, guidelineSelectionPromise]).then(
-        (results) => {
-          results.forEach((result, index) => {
-            if (
-              result.status === "rejected" &&
-              result.reason?.name !== "AbortError"
-            ) {
-              const taskName = index === 0 ? "Guidance" : "Guideline Selection";
-              logEvent(`${taskName} background task failed`, {
-                error: result.reason?.message,
-              });
-            }
-          });
-        },
-      );
+      Promise.allSettled([guidancePromise, guidelineSelectionPromise]).then((results) => {
+        results.forEach((result, index) => {
+          if (result.status === "rejected" && result.reason?.name !== "AbortError") {
+            const taskName = index === 0 ? "Guidance" : "Guideline Selection";
+            logEvent(`${taskName} background task failed`, {
+              error: result.reason?.message,
+            });
+          }
+        });
+      });
 
       setProcess("idle");
     } catch (e) {
@@ -743,12 +761,8 @@ export const createWorkflowSlice: StateCreator<
       return;
     }
 
-    const findingsMatch = editableReportContent.match(
-      /FINDINGS:([\s\S]*?)IMPRESSION:/i,
-    );
-    const findingsText = findingsMatch
-      ? findingsMatch[1].trim()
-      : editableReportContent;
+    const findingsMatch = editableReportContent.match(/FINDINGS:([\s\S]*?)IMPRESSION:/i);
+    const findingsText = findingsMatch ? findingsMatch[1].trim() : editableReportContent;
 
     if (!findingsText) {
       logEvent("Differential generation skipped: No findings found.");
@@ -759,7 +773,7 @@ export const createWorkflowSlice: StateCreator<
     try {
       const result = await runAiTask<{ diagnoses: DifferentialDiagnosis[] }>(
         "generateDifferentials",
-        { prompt: findingsText },
+        { prompt: findingsText }
       );
       const diagnoses = result.diagnoses || [];
       logEvent("Differentials generated", { count: diagnoses.length });
@@ -776,17 +790,11 @@ export const createWorkflowSlice: StateCreator<
     }
   },
 
-  updateSelectedDifferentials: (differentials) =>
-    set({ selectedDifferentials: differentials }),
+  updateSelectedDifferentials: (differentials) => set({ selectedDifferentials: differentials }),
 
   synthesizeImpression: async () => {
-    const {
-      editableReportContent,
-      selectedDifferentials,
-      parsedInfo,
-      setProcess,
-      setError,
-    } = get();
+    const { editableReportContent, selectedDifferentials, parsedInfo, setProcess, setError } =
+      get();
     if (selectedDifferentials.length === 0 || !parsedInfo) {
       logEvent("Impression synthesis skipped: No differentials selected.");
       set({ copilotView: "review" });
@@ -796,9 +804,7 @@ export const createWorkflowSlice: StateCreator<
 
     setProcess("synthesizingImpression");
     try {
-      const findingsMatch = editableReportContent.match(
-        /FINDINGS:([\s\S]*?)(IMPRESSION:|$)/i,
-      );
+      const findingsMatch = editableReportContent.match(/FINDINGS:([\s\S]*?)(IMPRESSION:|$)/i);
       const findingsText = findingsMatch ? findingsMatch[1].trim() : "";
       let reportBase = findingsMatch
         ? findingsMatch[0].replace(/IMPRESSION:[\s\S]*/i, "IMPRESSION:")
@@ -829,7 +835,7 @@ export const createWorkflowSlice: StateCreator<
   reviseBrief: () => {
     logEvent("Revising Brief");
     // Cancel any in-flight guidance requests to prevent stale updates
-    cancelGuidanceRequests();
+    abortManager.cancelByType("guidance");
     set({ workflowStage: "verification", copilotView: "guidance" });
   },
 
@@ -884,13 +890,7 @@ export const createWorkflowSlice: StateCreator<
   },
 
   fetchFinalReview: async () => {
-    const {
-      editableReportContent,
-      parsedInfo,
-      activeGuidelines,
-      setProcess,
-      setError,
-    } = get();
+    const { editableReportContent, parsedInfo, activeGuidelines, setProcess, setError } = get();
     if (!editableReportContent.trim() || !parsedInfo) return;
 
     setProcess("fetchingFinalReview");
@@ -903,12 +903,9 @@ export const createWorkflowSlice: StateCreator<
           ? `**Relevant Guidelines:**\n${activeGuidelines.map((g) => `- ${g.topic}: ${g.llmSummary}`).join("\n")}`
           : "";
 
-      const result = await runAiTask<{ recommendations: string[] }>(
-        "finalReview",
-        {
-          prompt: `**Clinical Brief:**\n${clinicalBrief}\n\n**Final Report:**\n${editableReportContent}\n\n${guidelinesText}`,
-        },
-      );
+      const result = await runAiTask<{ recommendations: string[] }>("finalReview", {
+        prompt: `**Clinical Brief:**\n${clinicalBrief}\n\n**Final Report:**\n${editableReportContent}\n\n${guidelinesText}`,
+      });
 
       const recommendations = result.recommendations || [];
       set({
@@ -969,20 +966,11 @@ export const createWorkflowSlice: StateCreator<
   clearDiagnostics: () => set({ diagnosticMessages: [] }),
 
   submitQuery: async (query) => {
-    const {
-      qaHistory,
-      parsedInfo,
-      editableReportContent,
-      setProcess,
-      setError,
-    } = get();
+    const { qaHistory, parsedInfo, editableReportContent, setProcess, setError } = get();
     if (!query.trim() || !parsedInfo) return;
 
     setProcess("querying");
-    const newHistory = [
-      ...qaHistory,
-      { role: "user" as const, content: query },
-    ];
+    const newHistory = [...qaHistory, { role: "user" as const, content: query }];
     set({
       qaHistory: [...newHistory, { role: "model" as const, content: "" }],
     });
@@ -1056,9 +1044,7 @@ export const createWorkflowSlice: StateCreator<
                 ...state.rundownData[key],
                 content: safeContent,
                 isLoading: false,
-                error: safeContent.startsWith("Error:")
-                  ? safeContent
-                  : undefined,
+                error: safeContent.startsWith("Error:") ? safeContent : undefined,
               },
             },
           };

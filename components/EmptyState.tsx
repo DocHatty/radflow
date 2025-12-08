@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode } from "react";
 
 interface EmptyStateProps {
   icon?: ReactNode;
@@ -12,9 +12,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, message }) => {
       <div className="text-center text-(--color-text-muted) p-4">
         {icon}
         {title && <h3 className="font-semibold mt-2 text-white">{title}</h3>}
-        <p className={`text-xs ${title ? 'mt-1' : ''}`}>
-          {message}
-        </p>
+        <p className={`text-xs ${title ? "mt-1" : ""}`}>{message}</p>
       </div>
     </div>
   );

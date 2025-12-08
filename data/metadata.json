@@ -1,7 +1,5 @@
 {
   "name": "HATPRO7",
   "description": "A realtime streaming smart workflow agent for radiology, designed to give clear, concise, and practical responses to clinical queries and reporting tasks.",
-  "requestFramePermissions": [
-    "microphone"
-  ]
+  "requestFramePermissions": ["microphone"]
 }
