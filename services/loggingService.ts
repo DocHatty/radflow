@@ -5,8 +5,8 @@ import { useWorkflowStore } from "../App";
  * @param eventName A descriptive name for the event.
  * @param data Optional additional data to log.
  */
-export const logEvent = (eventName: string, data?: Record<string, any>): void => {
-  console.log(`[EVENT] ${eventName}`, data || "");
+export const logEvent = (eventName: string, data?: Record<string, unknown>): void => {
+  console.warn(`[EVENT] ${eventName}`, data || "");
   useWorkflowStore.getState().addDiagnostic("log", eventName, data);
 };
 
@@ -15,7 +15,7 @@ export const logEvent = (eventName: string, data?: Record<string, any>): void =>
  * @param context A string describing where the error occurred.
  * @param errorData The error object or a data object containing error info.
  */
-export const logError = (context: string, errorData: Record<string, any>): void => {
+export const logError = (context: string, errorData: Record<string, unknown>): void => {
   console.error(`[ERROR] ${context}:`, errorData);
   useWorkflowStore.getState().addDiagnostic("error", context, errorData);
 };

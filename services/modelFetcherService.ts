@@ -55,8 +55,8 @@ async function fetchOpenAIModels(provider: ApiProvider): Promise<FetchedModel[]>
   }
   const data = await response.json();
   return data.data
-    .filter((model: any) => model.id.includes("gpt"))
-    .map((model: any) => ({ id: model.id, name: model.id }))
+    .filter((model: { id: string }) => model.id.includes("gpt"))
+    .map((model: { id: string }) => ({ id: model.id, name: model.id }))
     .sort((a: FetchedModel, b: FetchedModel) => a.name.localeCompare(b.name));
 }
 
@@ -67,7 +67,7 @@ async function fetchOpenRouterModels(): Promise<FetchedModel[]> {
   }
   const data = await response.json();
   return data.data
-    .map((model: any) => ({ id: model.id, name: model.name || model.id }))
+    .map((model: { id: string; name?: string }) => ({ id: model.id, name: model.name || model.id }))
     .sort((a: FetchedModel, b: FetchedModel) => a.name.localeCompare(b.name));
 }
 

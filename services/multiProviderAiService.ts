@@ -15,7 +15,7 @@ interface AiRequestPayload {
 // --- Google GenAI Implementation ---
 const runGoogleRequest = async (
   payload: AiRequestPayload,
-  schema?: any,
+  schema?: Record<string, unknown>,
   useGrounding: boolean = false
 ) => {
   // For the default provider, apiKey might be empty, relying on the environment variable.
@@ -23,7 +23,7 @@ const runGoogleRequest = async (
   const ai = new GoogleGenAI({
     apiKey: payload.provider.apiKey || process.env.API_KEY,
   });
-  const config: any = { systemInstruction: payload.systemInstruction };
+  const config: Record<string, unknown> = { systemInstruction: payload.systemInstruction };
 
   if (payload.temperature !== undefined) {
     config.temperature = payload.temperature;
@@ -85,7 +85,7 @@ const runGoogleStreamRequest = async (payload: AiRequestPayload) => {
   const ai = new GoogleGenAI({
     apiKey: payload.provider.apiKey || process.env.API_KEY,
   });
-  const config: any = { systemInstruction: payload.systemInstruction };
+  const config: Record<string, unknown> = { systemInstruction: payload.systemInstruction };
   if (payload.temperature !== undefined) {
     config.temperature = payload.temperature;
   }
@@ -168,7 +168,7 @@ const runFetchStreamRequest = async (payload: AiRequestPayload): Promise<string>
     Authorization: `Bearer ${provider.apiKey}`,
   };
 
-  let body: any;
+  let body: Record<string, unknown>;
 
   if (provider.providerId === "anthropic") {
     headers["anthropic-version"] = "2023-06-01";
@@ -261,7 +261,7 @@ const runFetchStreamRequest = async (payload: AiRequestPayload): Promise<string>
 
 // --- Public Service Interface ---
 export const multiProviderAiService = {
-  async generateJson(payload: AiRequestPayload, schema: any) {
+  async generateJson(payload: AiRequestPayload, schema: Record<string, unknown>) {
     if (payload.provider.providerId === "google") {
       return runGoogleRequest(payload, schema);
     } else {

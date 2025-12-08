@@ -67,7 +67,7 @@ const SECTION_CONFIG: Array<{
 ];
 
 export const initializeRundownData = (): RundownData => {
-  const data: any = {};
+  const data: Partial<RundownData> = {};
   SECTION_CONFIG.forEach((section) => {
     data[section.key] = {
       title: section.title,

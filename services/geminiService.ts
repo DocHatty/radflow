@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, PersonGeneration } from "@google/genai";
 
 // --- Constants from User Spec ---
 
@@ -89,7 +89,7 @@ export const generateImpressionistBackground = async (
             numberOfImages: 1,
             outputMimeType: "image/jpeg",
             aspectRatio: "16:9",
-            personGeneration: "dont_allow" as any,
+            personGeneration: PersonGeneration.DONT_ALLOW,
           },
         });
 

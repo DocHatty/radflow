@@ -150,7 +150,7 @@ const PasswordInput: React.FC<{
 const ProvidersTab: React.FC = () => {
   const { settings, addProvider, updateProvider, removeProvider, setActiveProviderId } =
     useWorkflowStore((state) => ({
-      settings: state.settings!,
+      settings: state.settings as Settings,
       addProvider: state.addProvider,
       updateProvider: state.updateProvider,
       removeProvider: state.removeProvider,

@@ -69,7 +69,7 @@ export class LLMGateway {
    */
   async executeJson<T>(
     request: GatewayRequest,
-    schema: unknown,
+    schema: Record<string, unknown>,
     fallbackProviders?: ProviderConfig[]
   ): Promise<GatewayResponse<T>> {
     const providers = fallbackProviders || this.providers;

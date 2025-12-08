@@ -25,7 +25,7 @@ class AiTaskError extends Error {
 type TaskConfig = {
   instructionKey?: PromptKey;
   requestType: "json" | "stream" | "grounding" | "image" | "normal";
-  schema?: unknown;
+  schema?: Record<string, unknown>;
   temperature?: number;
   cacheable?: boolean; // Whether this task can be cached
   cacheTTL?: number; // Custom TTL for this task

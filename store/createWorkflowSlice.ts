@@ -93,7 +93,7 @@ export interface WorkflowSlice {
   integrateDictation: (dictatedText: string) => Promise<void>;
   fetchFinalReview: () => Promise<void>;
   applyRecommendations: (recommendations: string[]) => Promise<void>;
-  addDiagnostic: (type: "log" | "error", message: string, data?: any) => void;
+  addDiagnostic: (type: "log" | "error", message: string, data?: unknown) => void;
   clearDiagnostics: () => void;
   generateDifferentials: () => Promise<void>;
   updateSelectedDifferentials: (differentials: DifferentialDiagnosis[]) => void;
@@ -407,12 +407,12 @@ export const createWorkflowSlice: StateCreator<
         const newList = JSON.parse(JSON.stringify(targetCategory));
         if (newList[index]) {
           newList[index][field] = newValue;
-          (newInfo as any)[category] = newList;
+          (newInfo as Record<string, unknown>)[category] = newList;
         }
       } else {
         const newObject = targetCategory ? JSON.parse(JSON.stringify(targetCategory)) : {};
         newObject[field] = newValue;
-        (newInfo as any)[category] = newObject;
+        (newInfo as Record<string, unknown>)[category] = newObject;
       }
 
       return { parsedInfo: newInfo };
@@ -500,7 +500,7 @@ export const createWorkflowSlice: StateCreator<
       // PARALLEL: Fetch appropriateness and rundown sections simultaneously
       const appropriatenessPromise = runAiTask<{
         text: string;
-        sources: any[];
+        sources: Array<{ uri: string; title: string }>;
       }>("getAppropriateness", { prompt: clinicalBrief, signal })
         .then((result) => {
           if (!signal.aborted) {

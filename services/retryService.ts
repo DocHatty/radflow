@@ -69,7 +69,7 @@ const getCircuitBreaker = (providerId: string): CircuitBreakerState => {
       isOpen: false,
     });
   }
-  return circuitBreakers.get(providerId)!;
+  return circuitBreakers.get(providerId) as CircuitBreakerState;
 };
 
 /**

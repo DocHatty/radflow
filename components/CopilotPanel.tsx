@@ -14,7 +14,7 @@ interface CopilotStepperProps {
 }
 
 const CopilotStepper: React.FC<CopilotStepperProps> = ({ currentView, setView }) => {
-  const steps: { view: CopilotView; name: string; icon: React.FC<any> }[] = [
+  const steps: { view: CopilotView; name: string; icon: React.FC<{ className?: string }> }[] = [
     { view: "guidance", name: "Guidance", icon: LightbulbIcon },
     { view: "differentials", name: "Differentials", icon: ListTreeIcon },
     { view: "review", name: "Review & Q/A", icon: ShieldCheckIcon },
