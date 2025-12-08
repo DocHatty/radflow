@@ -63,7 +63,11 @@ const InputStage: React.FC = () => {
         />
       </div>
       <InputArea
-        placeholder="Paste or type clinical information... (e.g., 'MRI Brain w/wo contrast for new onset seizure...')"
+        placeholder="Paste radiology modality type and any pertinent clinical info available.
+
+Please do not include any PHI. Be responsible, as this is experimental and uses cloud resources.
+
+(Cmd/Ctrl + Enter to Submit)"
         buttonText="Analyze Clinical Info"
       />
     </div>
